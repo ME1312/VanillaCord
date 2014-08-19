@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.8
+version = '1.0'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://libraries.minecraft.net/"
+    }
+}
+
+jar {
+    archiveName = "vanillacord.jar"
+    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanilla.Main")
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
+dependencies {
+    compile group: 'com.google.code.gson', name: 'gson', verson: '2.2.4'
+    compile group: 'com.mojang', name: 'authlib', version: '1.5.16'
+    compile group: 'io.netty', name: 'netty-all', version: '4.0.15.Final'
+    compile group: 'org.ow2.asm', name: 'asm-debug-all', version: '5.0.2'
+    compile group: 'com.google.guava', name: 'guava', version: '17.0'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
