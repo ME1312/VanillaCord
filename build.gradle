@@ -12,7 +12,7 @@ repositories {
 
 jar {
     archiveName = "vanillacord.jar"
-    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanilla.Main")
+    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Main")
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
 
