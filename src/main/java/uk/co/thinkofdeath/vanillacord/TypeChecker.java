@@ -16,7 +16,7 @@ public class TypeChecker extends ClassVisitor {
     }
 
     @Override
-    public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
+    public MethodVisitor visitMethod(int access, final String name, final String desc, String signature, String[] exceptions) {
         return new MethodVisitor(api) {
 
             @Override
