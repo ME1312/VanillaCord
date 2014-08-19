@@ -51,7 +51,7 @@ public class Main {
 
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
-                if (entry.getName().contains("/") || !entry.getName().endsWith(".class")) {
+                if (!entry.getName().endsWith(".class")) {
                     zop.putNextEntry(entry);
                     ByteStreams.copy(zip, zop);
                     continue;
