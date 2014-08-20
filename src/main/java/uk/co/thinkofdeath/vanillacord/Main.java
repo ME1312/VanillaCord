@@ -76,7 +76,7 @@ public class Main {
                     reader = new ClassReader(clazz);
                     ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
                     HandshakeListener hsl = new HandshakeListener(classWriter, typeChecker);
-                    reader.accept(hsl, ClassReader.EXPAND_FRAMES);
+                    reader.accept(hsl, 0);
                     clazz = classWriter.toByteArray();
 
                     handshakePacket = hsl.getHandshake();
@@ -92,7 +92,7 @@ public class Main {
                 byte[] clazz = classes.get(handshakePacket + ".class");
                 ClassReader reader = new ClassReader(clazz);
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                reader.accept(new HandshakePacket(classWriter), ClassReader.EXPAND_FRAMES);
+                reader.accept(new HandshakePacket(classWriter), 0);
                 clazz = classWriter.toByteArray();
                 classes.put(handshakePacket + ".class", clazz);
             }
@@ -101,7 +101,7 @@ public class Main {
                 byte[] clazz = classes.get(loginListener);
                 ClassReader reader = new ClassReader(clazz);
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                reader.accept(new LoginListener(classWriter, networkManager), ClassReader.EXPAND_FRAMES);
+                reader.accept(new LoginListener(classWriter, networkManager), 0);
                 clazz = classWriter.toByteArray();
                 classes.put(loginListener, clazz);
             }
