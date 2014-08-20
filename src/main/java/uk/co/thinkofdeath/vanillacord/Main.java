@@ -105,6 +105,15 @@ public class Main {
                 clazz = classWriter.toByteArray();
                 classes.put(loginListener, clazz);
             }
+            // Change the server brand
+            {
+                byte[] clazz = classes.get("net/minecraft/server/MinecraftServer.class");
+                ClassReader classReader = new ClassReader(clazz);
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                classReader.accept(new MCBrand(classWriter), 0);
+                clazz = classWriter.toByteArray();
+                classes.put("net/minecraft/server/MinecraftServer.class", clazz);
+            }
 
             for (Map.Entry<String, byte[]> e : classes.entrySet()) {
                 zop.putNextEntry(new ZipEntry(e.getKey()));
