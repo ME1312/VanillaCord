@@ -55,6 +55,57 @@ public class LoginListener extends ClassVisitor {
             mv.visitEnd();
             return null;
         }
-        return super.visitMethod(access, name, desc, signature, exceptions);
+        return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
+
+            private int state = 0;
+
+            @Override
+            public void visitLdcInsn(Object cst) {
+                super.visitLdcInsn(cst);
+                if (cst.equals("Unexpected hello packet")) {
+                    setState(0, 1);
+                }
+            }
+
+            @Override
+            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+                if (opcode == Opcodes.INVOKEVIRTUAL) {
+                    if (desc.contains("GameProfile") && state == 1) {
+                        setState(1, 2);
+                    }
+                }
+                if (state == 4) {
+                    setState(4, 5);
+                    mv.visitIntInsn(Opcodes.BIPUSH, 0);
+                    return;
+                }
+                super.visitMethodInsn(opcode, owner, name, desc, itf);
+            }
+
+            @Override
+            public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+                if (state == 3) {
+                    setState(3, 4);
+                    return;
+                }
+                super.visitFieldInsn(opcode, owner, name, desc);
+            }
+
+            @Override
+            public void visitVarInsn(int opcode, int var) {
+                if (state == 2 && opcode == Opcodes.ALOAD) {
+                    setState(2, 3);
+                    return;
+                }
+                super.visitVarInsn(opcode, var);
+            }
+
+            private void setState(int old, int n) {
+                if (state != old) {
+                    throw new RuntimeException("Inject failed");
+                }
+                state = n;
+            }
+        };
     }
 }

@@ -96,7 +96,7 @@ public class Main {
                 clazz = classWriter.toByteArray();
                 classes.put(handshakePacket + ".class", clazz);
             }
-            // Inject the profile injector
+            // Inject the profile injector and force offline mode
             {
                 byte[] clazz = classes.get(loginListener);
                 ClassReader reader = new ClassReader(clazz);
