@@ -13,7 +13,16 @@ repositories {
 jar {
     archiveName = "vanillacord.jar"
     manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Main")
-    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    from {
+        configurations.compile
+                .filter {
+            !it.name.contains("netty") \
+            && !it.name.contains("authlib") \
+            && !it.name.contains("commons") \
+            && !it.name.contains("log4j")
+        }
+        .collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 dependencies {
