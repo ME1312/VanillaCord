@@ -10,7 +10,9 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -49,11 +51,21 @@ public class Main {
 
             System.out.println("Loading");
 
+            // So Mojang managed to include the same file
+            // multiple times in the server jar. This
+            // (not being valid) causes java to (correctly)
+            // throw an exception so we need to track what
+            // files have been added to a jar so that we
+            // don't add them twice
+            Set<String> mojangCantEvenJar = new HashSet<>();
+
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 if (!entry.getName().endsWith(".class")) {
-                    zop.putNextEntry(entry);
-                    ByteStreams.copy(zip, zop);
+                    if (mojangCantEvenJar.add(entry.getName())) {
+                        zop.putNextEntry(entry);
+                        ByteStreams.copy(zip, zop);
+                    }
                     continue;
                 }
                 byte[] clazz = ByteStreams.toByteArray(zip);
