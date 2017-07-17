@@ -14,8 +14,8 @@ import java.util.UUID;
 public class BungeeHelper {
 
     private static final Gson gson = new Gson();
-    public static AttributeKey<UUID> UUID_KEY = new AttributeKey<>("spoofed-uuid");
-    public static AttributeKey<Property[]> PROPERTIES_KEY = new AttributeKey<>("spoofed-props");
+    public static AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("spoofed-uuid");
+    public static AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("spoofed-props");
 
     public static void parseHandshake(Object networkManager, Object handshake) {
         try {
