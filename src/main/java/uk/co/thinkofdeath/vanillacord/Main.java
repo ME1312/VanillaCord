@@ -1,14 +1,10 @@
 package uk.co.thinkofdeath.vanillacord;
 
 import com.google.common.io.ByteStreams;
-import com.google.common.io.Resources;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.*;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -27,18 +23,7 @@ public class Main {
 
         String version = args[0];
 
-        String url = String.format("http://s3.amazonaws.com/Minecraft.Download/versions/%1$s/minecraft_server.%1$s.jar", version);
-
         File in = new File("in/" + version + ".jar");
-        in.getParentFile().mkdirs();
-        if (!in.exists()) {
-            System.out.println("Downloading");
-            try (FileOutputStream fin = new FileOutputStream(in)) {
-                Resources.copy(new URL(url), fin);
-            }
-        }
-        addURL(in.toURI().toURL());
-
         File out = new File("out/" + version + "-bungee.jar");
         out.getParentFile().mkdirs();
         if (out.exists()) out.delete();
@@ -135,20 +120,6 @@ public class Main {
             System.out.println("Adding helper");
             zop.putNextEntry(new ZipEntry("uk/co/thinkofdeath/vanillacord/util/BungeeHelper.class"));
             ByteStreams.copy(helper, zop);
-        }
-    }
-
-
-    public static void addURL(URL u) throws IOException {
-        URLClassLoader sysloader = (URLClassLoader) ClassLoader.getSystemClassLoader();
-        Class<?> sysclass = URLClassLoader.class;
-        try {
-            Method method = sysclass.getDeclaredMethod("addURL", URL.class);
-            method.setAccessible(true);
-            method.invoke(sysloader, new Object[]{u});
-        } catch (Throwable t) {
-            t.printStackTrace();
-            throw new IOException("Error, could not add URL to system classloader");
         }
     }
 }

@@ -12,7 +12,7 @@ repositories {
 
 jar {
     archiveName = "vanillacord.jar"
-    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Main")
+    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Launch")
     from {
         configurations.compile
                 .filter {
