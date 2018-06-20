@@ -22,7 +22,7 @@ public class Launch {
         File in = new File("in/" + version + ".jar");
         in.getParentFile().mkdirs();
         if (!in.exists()) {
-            System.out.println("Downloading");
+            System.out.println("Downloading Minecraft Server " + version);
             try (FileOutputStream fin = new FileOutputStream(in)) {
                 Resources.copy(new URL(url), fin);
             }
