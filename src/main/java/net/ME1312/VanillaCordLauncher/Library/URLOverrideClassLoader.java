@@ -1,4 +1,4 @@
-package uk.co.thinkofdeath.vanillacord;
+package net.ME1312.VanillaCordLauncher.Library;
 
 import java.net.URL;
 import java.net.URLClassLoader;
