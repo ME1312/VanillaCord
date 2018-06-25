@@ -15,8 +15,9 @@ public class Launch {
             return;
         }
 
-        String version = args[0];
+        System.out.println("VanillaCord branch 1.12");
 
+        String version = args[0];
         String url = String.format("http://s3.amazonaws.com/Minecraft.Download/versions/%1$s/minecraft_server.%1$s.jar", version);
 
         File in = new File("in/" + version + ".jar");
