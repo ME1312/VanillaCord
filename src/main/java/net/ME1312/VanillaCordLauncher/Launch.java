@@ -46,7 +46,7 @@ public class Launch {
             try (FileOutputStream fin = new FileOutputStream(patchfile); ReadableByteChannel rbc = Channels.newChannel(new URL(patchurl).openStream())) {
                 fin.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             }
-        }
+        } else System.out.println("Reusing patches from branch " + patchversion);
 
         URLOverrideClassLoader loader = new URLOverrideClassLoader(new URL[]{patchfile.toURI().toURL(), mcfile.toURI().toURL()});
         loader.loadClass("uk.co.thinkofdeath.vanillacord.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
