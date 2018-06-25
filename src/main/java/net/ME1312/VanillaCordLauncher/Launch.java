@@ -17,6 +17,7 @@ public class Launch {
             return;
         }
 
+        Version launcherversion = new Version(1, 4);
         Version mcversion = new Version(args[0]);
         Version patchversion;
         if (mcversion.compareTo(new Version("1.12")) >= 0) {
@@ -25,6 +26,7 @@ public class Launch {
             patchversion = new Version("1.7.10");
         }
 
+        System.out.println("VanillaCord launcher v" + launcherversion);
         String mcurl = String.format("http://s3.amazonaws.com/Minecraft.Download/versions/%1$s/minecraft_server.%1$s.jar", mcversion);
         String patchurl = String.format("https://raw.githubusercontent.com/ME1312/VanillaCord/%1$s/artifacts/VanillaCord.jar", patchversion);
 
