@@ -26,6 +26,9 @@ public class Launch {
             System.out.println("Downloading Minecraft Server " + version);
             try (FileOutputStream fin = new FileOutputStream(in)) {
                 Resources.copy(new URL(url), fin);
+            } catch (Throwable e) {
+                in.delete();
+                throw e;
             }
         }
 
