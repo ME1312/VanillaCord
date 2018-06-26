@@ -36,6 +36,9 @@ public class Launch {
             System.out.println("Downloading Minecraft Server " + mcversion);
             try (FileOutputStream fin = new FileOutputStream(mcfile); ReadableByteChannel rbc = Channels.newChannel(new URL(mcurl).openStream())) {
                 fin.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            } catch (Throwable e) {
+                mcfile.delete();
+                throw e;
             }
         }
 
@@ -45,6 +48,9 @@ public class Launch {
             System.out.println("Downloading patches from branch " + patchversion);
             try (FileOutputStream fin = new FileOutputStream(patchfile); ReadableByteChannel rbc = Channels.newChannel(new URL(patchurl).openStream())) {
                 fin.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+            } catch (Throwable e) {
+                patchfile.delete();
+                throw e;
             }
         } else System.out.println("Reusing patches from branch " + patchversion);
 
