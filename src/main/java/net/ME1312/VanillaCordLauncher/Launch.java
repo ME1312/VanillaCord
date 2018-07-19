@@ -20,8 +20,9 @@ public class Launch {
             return;
         }
 
-        Version launcherversion = new Version(1, 5);
+        Version launcherversion = new Version(1, 6);
         Version mcversion = new Version(args[0].toLowerCase());
+        Version patchversion = null;
 
         System.out.println("VanillaCord launcher v" + launcherversion);
         System.out.println("Searching versions");
@@ -31,16 +32,22 @@ public class Launch {
         for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
             if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(mcversion.toString())) {
                 mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
+                mcversion = new Version(mcprofile.getString("id"));
                 break;
             }
         } if (mcprofile == null) throw new IllegalArgumentException("Could not find server version for " + mcversion);
 
-        Version patchversion;
-        if (mcversion.compareTo(new Version("1.12")) >= 0) {
-            patchversion = new Version("1.12");
-        } else {
-            patchversion = new Version("1.7.10");
-        }
+        String patchkey = null;
+        JSONObject patchversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://raw.githubusercontent.com/ME1312/VanillaCord/master/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
+        for (String version : patchversionmanifest.keySet()) {
+            if ((patchversion == null || patchversion.compareTo(new Version(patchversionmanifest.getJSONObject(version).getString("id"))) < 0) && mcversion.compareTo(new Version(version)) >= 0) {
+                patchversion = new Version(patchversionmanifest.getJSONObject(version).getString("id"));
+                patchkey = version;
+            }
+        } if (patchversion == null || patchkey == null) throw new IllegalArgumentException("Could not find patches for " + mcversion);
+        JSONObject patchprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(patchversionmanifest.getJSONObject(patchkey).getString("url")).openStream(), Charset.forName("UTF-8")))));
+        patchversion = new Version(patchprofile.getString("id"));
+        if (launcherversion.compareTo(new Version(patchprofile.getString("launcherVersion"))) < 0) throw new IllegalStateException("Branch " + patchversion + " requires VanillaCord Launcher v" + patchprofile.getString("launcherVersion") + '+');
 
 
         File mcfile = new File("in/" + mcversion + ".jar");
@@ -70,7 +77,7 @@ public class Launch {
             System.out.println("Downloading patches from branch " + patchversion);
             try (
                     FileOutputStream fin = new FileOutputStream(patchfile);
-                    ReadableByteChannel rbc = Channels.newChannel(new URL(String.format("https://raw.githubusercontent.com/ME1312/VanillaCord/%1$s/artifacts/VanillaCord.jar", patchversion)).openStream())
+                    ReadableByteChannel rbc = Channels.newChannel(new URL(patchprofile.getJSONObject("download").getString("url")).openStream())
             ) {
                 fin.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
             } catch (Throwable e) {
@@ -80,7 +87,7 @@ public class Launch {
         } else System.out.println("Reusing patches from branch " + patchversion);
 
         URLOverrideClassLoader loader = new URLOverrideClassLoader(new URL[]{patchfile.toURI().toURL(), mcfile.toURI().toURL()});
-        loader.loadClass("uk.co.thinkofdeath.vanillacord.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
+        loader.loadClass(patchprofile.getString("launch")).getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
     }
 
     private static String sha1(File file) throws IOException, NoSuchAlgorithmException {

@@ -1,0 +1,10 @@
+{
+  "1.12" : {
+    "version": "1.12",
+    "url": "https://raw.githubusercontent.com/ME1312/VanillaCord/1.12/profile.json"
+  },
+  "1.7.10" : {
+    "version": "1.7.10",
+    "url": "https://raw.githubusercontent.com/ME1312/VanillaCord/1.7.10/profile.json"
+  }
+}
