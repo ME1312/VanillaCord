@@ -5,7 +5,6 @@ import org.json.JSONObject;
 
 import java.io.*;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -19,7 +18,7 @@ public class Launch {
         }
 
         System.out.println("VanillaCord branch 1.12");
-        System.out.println("Searching versions...");
+        System.out.println("Searching versions");
 
         String mcversion = args[0].toLowerCase();
         JSONObject mcprofile = null;
@@ -53,7 +52,7 @@ public class Launch {
         loader.loadClass("uk.co.thinkofdeath.vanillacord.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
     }
 
-    private static String sha1(File file) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
+    private static String sha1(File file) throws IOException, NoSuchAlgorithmException {
         MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
         try (InputStream input = new FileInputStream(file)) {
             byte[] buffer = new byte[8192];
