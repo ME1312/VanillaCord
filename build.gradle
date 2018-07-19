@@ -3,6 +3,10 @@ apply plugin: 'java'
 sourceCompatibility = 1.8
 version = '1.0'
 
+repositories {
+    mavenCentral()
+}
+
 jar {
     archiveName = "vanillacord.jar"
     destinationDir = file("$rootDir/artifacts")
@@ -12,9 +16,6 @@ jar {
     }
 }
 
-repositories {
-    mavenCentral()
-}
 dependencies {
     compile group: 'org.json', name: 'json', version: '20180130'
 }

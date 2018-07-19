@@ -4,7 +4,6 @@ import net.ME1312.VanillaCordLauncher.Library.URLOverrideClassLoader;
 import net.ME1312.VanillaCordLauncher.Library.Version.Version;
 import org.json.JSONObject;
 
-import javax.xml.bind.annotation.adapters.HexBinaryAdapter;
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -12,7 +11,6 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.HashMap;
 
 public class Launch {
 
