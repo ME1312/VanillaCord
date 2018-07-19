@@ -24,7 +24,7 @@ public class Launch {
         Version mcversion = new Version(args[0].toLowerCase());
 
         System.out.println("VanillaCord launcher v" + launcherversion);
-        System.out.println("Searching versions...");
+        System.out.println("Searching versions");
 
         JSONObject mcprofile = null;
         JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
@@ -83,7 +83,7 @@ public class Launch {
         loader.loadClass("uk.co.thinkofdeath.vanillacord.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
     }
 
-    private static String sha1(File file) throws FileNotFoundException, IOException, NoSuchAlgorithmException {
+    private static String sha1(File file) throws IOException, NoSuchAlgorithmException {
         MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
         try (InputStream input = new FileInputStream(file)) {
             byte[] buffer = new byte[8192];
