@@ -8,7 +8,7 @@ repositories {
 }
 
 jar {
-    archiveName = "vanillacord.jar"
+    archiveName = "VanillaCord.jar"
     destinationDir = file("$rootDir/artifacts")
     manifest.attributes("Main-Class": "net.ME1312.VanillaCordLauncher.Launch")
     from {

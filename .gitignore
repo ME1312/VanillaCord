@@ -1,6 +1,7 @@
 build/
 in/
 out/
+artifacts/
 .gradle/
 .idea
 *.iml
