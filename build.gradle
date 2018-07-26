@@ -11,7 +11,7 @@ repositories {
 }
 
 jar {
-    archiveName = "vanillacord.jar"
+    archiveName = "VanillaCord.jar"
     destinationDir = file("$rootDir/artifacts")
     manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Launch")
     from {
