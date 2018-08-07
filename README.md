@@ -5,7 +5,7 @@ VanillaCord adds support for BungeeCord's `ip-forwarding` option on vanilla Mine
 > [https://www.spigotmc.org/resources/vanillacord.952/](https://www.spigotmc.org/resources/vanillacord.952/)
 
 ### Snapshot Downloads
-> [https://src.me1312.net/jenkins/job/VanillaCord/job/master](https://src.me1312.net/jenkins/job/VanillaCord)
+> [https://src.me1312.net/jenkins/job/VanillaCord/](https://src.me1312.net/jenkins/job/VanillaCord/job/master)
 
 ## Launcher Version
 This is the Buildtools style launcher version of VanillaCord. This version will download and run a patcher from the correct branch for the Minecraft version you enter. This is what branches are compatable with what Minecraft versions:<br>
