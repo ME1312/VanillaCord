@@ -42,9 +42,9 @@ public class BungeeHelper {
             if (host == null || channel == null || socket == null) {
                 throw new RuntimeException("Hook failed");
             }
-
+            //System.out.println(">> Handshake: " + host); // Debug
             String[] split = host.split("\00");
-            if (split.length != 4) {
+            if (split.length != 3 && split.length != 4) {
                 throw new RuntimeException("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
@@ -55,7 +55,7 @@ public class BungeeHelper {
             String uuid = split[2];
             channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-" + uuid.substring(16, 20) + "-" + uuid.substring(20, 32)));
 
-            channel.attr(PROPERTIES_KEY).set(gson.fromJson(split[3], Property[].class));
+            channel.attr(PROPERTIES_KEY).set(gson.fromJson((split.length > 3)?split[3]:"[]", Property[].class));
         } catch (Exception e) {
             e.printStackTrace();
             if (e instanceof RuntimeException) {
