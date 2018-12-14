@@ -61,10 +61,10 @@ public class Launch {
                 fin.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 
                 if (mcfile.length() != mcprofile.getJSONObject("downloads").getJSONObject("server").getLong("size"))
-                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: File size: " + mcfile.length() + "!=" + mcprofile.getJSONObject("downloads").getJSONObject("server").getLong("size"));
+                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: File size: " + mcfile.length() + " != " + mcprofile.getJSONObject("downloads").getJSONObject("server").getLong("size"));
                 String sha1 = sha1(mcfile);
                 if (!mcprofile.getJSONObject("downloads").getJSONObject("server").getString("sha1").equals(sha1))
-                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: SHA-1 checksum: " + sha1 + "!=" + mcprofile.getJSONObject("downloads").getJSONObject("server").getString("sha1"));
+                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: SHA-1 checksum: " + sha1 + " != " + mcprofile.getJSONObject("downloads").getJSONObject("server").getString("sha1"));
             } catch (Throwable e) {
                 mcfile.delete();
                 throw e;
