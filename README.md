@@ -10,6 +10,6 @@ VanillaCord adds support for BungeeCord's `ip-forwarding` option on vanilla Mine
 ## Branch 1.12
 *For Minecraft* 1.12.x, 1.13.x, and possible future versions
 <br><br>
-Created by [@Thinkofname](https://github.com/Thinkofname)<br>
-Updated by [@maximvarentsov](https://github.com/maximvarentsov)<br>
-Maintained by [@ME1312](https://github.com/ME1312)
+Created by [@Thinkofname](https://github.com/Thinkofname/vanillacord/tree/cc7fac96ffc2f679ffc13ebe57c5688e087c4d82)<br>
+Updated by [@maximvarentsov](https://github.com/maximvarentsov/vanillacord/tree/7367be63f41868c8e0c5cbe646bc0d97156c4a71)<br>
+Maintained by [@ME1312](https://github.com/ME1312/VanillaCord/tree/1.12)
