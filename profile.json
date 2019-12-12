@@ -1,6 +1,6 @@
 {
   "download": {
-    "url": "https://src.me1312.net/jenkins/job/VanillaCord/job/1.12/lastSuccessfulBuild/artifact/artifacts/VanillaCord.jar"
+    "url": "https://dev.me1312.net/jenkins/job/VanillaCord/job/1.12/lastSuccessfulBuild/artifact/artifacts/VanillaCord.jar"
   },
   "id": "1.12",
   "launch": "uk.co.thinkofdeath.vanillacord.Main",
