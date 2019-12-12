@@ -1,11 +1,11 @@
 # VanillaCord
-[![Build Status](https://src.me1312.net/jenkins/job/VanillaCord/job/master/badge/icon)](https://src.me1312.net/jenkins/job/VanillaCord/job/master/) 
+[![Build Status](https://dev.me1312.net/jenkins/job/VanillaCord/job/master/badge/icon)](https://dev.me1312.net/jenkins/job/VanillaCord/job/master/) 
 [![Release Verison](https://img.shields.io/github/release/ME1312/VanillaCord/all.svg)](https://github.com/ME1312/VanillaCord/releases)<br><br>
 VanillaCord adds support for BungeeCord's `ip-forwarding` option on vanilla Minecraft servers
 > [https://www.spigotmc.org/resources/vanillacord.952/](https://www.spigotmc.org/resources/vanillacord.952/)
 
 ### Snapshot Downloads
-> [https://src.me1312.net/jenkins/job/VanillaCord/](https://src.me1312.net/jenkins/job/VanillaCord/job/master)
+> [https://dev.me1312.net/jenkins/job/VanillaCord/](https://dev.me1312.net/jenkins/job/VanillaCord/job/master)
 
 ## Launcher Version
 This is the Buildtools style launcher version of VanillaCord. This version will download and run a patcher from the correct branch for the Minecraft version you enter. This is what branches are compatable with what Minecraft versions:<br>
