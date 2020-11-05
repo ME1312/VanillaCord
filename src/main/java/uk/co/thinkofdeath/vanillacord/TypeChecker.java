@@ -21,7 +21,7 @@ public class TypeChecker extends ClassVisitor {
 
             @Override
             public void visitLdcInsn(Object cst) {
-                if (cst instanceof String && ((String) cst).startsWith("multiplayer.disconnect.outdated_server")) {
+                if (cst instanceof String && (((String) cst).startsWith("multiplayer.disconnect.outdated_server") || ((String) cst).startsWith("multiplayer.disconnect.incompatible"))) {
                     handshakeListener = true;
                     hsName = name;
                     hsDesc = desc;
