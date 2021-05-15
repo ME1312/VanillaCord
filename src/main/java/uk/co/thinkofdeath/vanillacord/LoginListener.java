@@ -10,8 +10,8 @@ public class LoginListener extends ClassVisitor {
     private String thisName;
 
     public LoginListener(ClassWriter classWriter, String networkManager) {
-        super(Opcodes.ASM5, classWriter);
-        this.networkManager = "L" + networkManager + ";";
+        super(Opcodes.ASM9, classWriter);
+        this.networkManager = networkManager;
     }
 
     @Override
@@ -55,7 +55,7 @@ public class LoginListener extends ClassVisitor {
             mv.visitEnd();
             return null;
         }
-        return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
+        return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
 
             private int state = 0;
 

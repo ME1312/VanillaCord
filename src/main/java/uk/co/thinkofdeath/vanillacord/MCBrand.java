@@ -8,7 +8,7 @@ import org.objectweb.asm.Opcodes;
 public class MCBrand extends ClassVisitor {
 
     public MCBrand(ClassWriter classWriter) {
-        super(Opcodes.ASM5, classWriter);
+        super(Opcodes.ASM9, classWriter);
     }
 
     @Override

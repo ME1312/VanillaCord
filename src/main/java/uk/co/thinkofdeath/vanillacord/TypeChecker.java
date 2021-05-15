@@ -12,7 +12,7 @@ public class TypeChecker extends ClassVisitor {
     private boolean loginListener;
 
     public TypeChecker() {
-        super(Opcodes.ASM5);
+        super(Opcodes.ASM9);
     }
 
     @Override

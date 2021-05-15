@@ -14,7 +14,7 @@ public class HandshakeListener extends ClassVisitor {
     private String handshake;
 
     public HandshakeListener(ClassVisitor cv, TypeChecker typeChecker) {
-        super(Opcodes.ASM5, cv);
+        super(Opcodes.ASM9, cv);
         this.typeChecker = typeChecker;
     }
 
@@ -38,7 +38,7 @@ public class HandshakeListener extends ClassVisitor {
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
         if (name.equals(typeChecker.hsName) && desc.equals(typeChecker.hsDesc)) {
-            return new MethodVisitor(Opcodes.ASM5, super.visitMethod(access, name, desc, signature, exceptions)) {
+            return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
                 private boolean waitVirt;
 
                 @Override
