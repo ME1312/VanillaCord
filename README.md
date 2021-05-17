@@ -9,7 +9,7 @@ VanillaCord adds support for BungeeCord's `ip-forwarding` option on vanilla Mine
 java -jar VanillaCord.jar <version> [secret]
 ```
 *where* `<version>` is the version of minecraft you want to select (It works with snapshots sometimes too!)<br>
-*and* `[secret]` is your forwarding secret, but only if you want to use [Velocity modern IP forwarding](https://velocitypowered.com/wiki/deployment/security/) (Otherwise, leave it blank)
+*and* `[secret]` is your forwarding secret, but only if you want to use [Velocity modern IP forwarding](https://velocitypowered.com/wiki/deployment/security/)
 
 ### Snapshot Downloads
 > [https://dev.me1312.net/jenkins/job/VanillaCord/](https://dev.me1312.net/jenkins/job/VanillaCord/job/master)
