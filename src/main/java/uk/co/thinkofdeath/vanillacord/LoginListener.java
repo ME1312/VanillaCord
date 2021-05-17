@@ -5,13 +5,20 @@ import org.objectweb.asm.*;
 
 public class LoginListener extends ClassVisitor {
     private final String networkManager;
-    private String fieldName;
-    private String fieldDesc;
-    private String thisName;
+    private final Class<?> clientQuery;
+    private final boolean secure;
+    private final String secret;
+    private String packetName;
+    String fieldName;
+    String fieldDesc;
+    String thisName;
 
-    public LoginListener(ClassWriter classWriter, String networkManager) {
+    public LoginListener(ClassWriter classWriter, String networkManager, String clientQuery, String secret) throws ClassNotFoundException {
         super(Opcodes.ASM9, classWriter);
         this.networkManager = networkManager;
+        this.secure = secret != null;
+        this.secret = secret;
+        this.clientQuery = (clientQuery != null)?Class.forName(clientQuery.substring(0, clientQuery.length() - 6)):null;
     }
 
     @Override
@@ -55,6 +62,31 @@ public class LoginListener extends ClassVisitor {
             mv.visitEnd();
             return null;
         }
+        if (secure && methodArgs.getArgumentTypes().length == 1
+                && methodArgs.getArgumentTypes()[0].equals(Type.getType(clientQuery))
+                && methodArgs.getReturnType().equals(Type.VOID_TYPE)) {
+            MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+            mv.visitCode();
+            mv.visitLabel(new Label());
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldName, fieldDesc);
+            mv.visitVarInsn(Opcodes.ASTORE, 2);
+
+            mv.visitLabel(new Label());
+            mv.visitVarInsn(Opcodes.ALOAD, 2);
+            mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitVarInsn(Opcodes.ALOAD, 1);
+            mv.visitLdcInsn(secret);
+            mv.visitMethodInsn(Opcodes.INVOKESTATIC,
+                    "uk/co/thinkofdeath/vanillacord/util/VelocityHelper",
+                    "completeTransaction",
+                    "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V", false
+            );
+            mv.visitInsn(Opcodes.RETURN);
+            mv.visitMaxs(2, 2);
+            mv.visitEnd();
+            return null;
+        }
         return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
 
             private int state = 0;
@@ -63,6 +95,7 @@ public class LoginListener extends ClassVisitor {
             public void visitLdcInsn(Object cst) {
                 super.visitLdcInsn(cst);
                 if (cst.equals("Unexpected hello packet")) {
+                    packetName = methodArgs.getArgumentTypes()[0].getInternalName();
                     setState(0, 1);
                 }
             }
@@ -107,5 +140,9 @@ public class LoginListener extends ClassVisitor {
                 state = n;
             }
         };
+    }
+
+    public String getPacket() {
+        return packetName;
     }
 }

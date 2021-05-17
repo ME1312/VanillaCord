@@ -6,6 +6,7 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 public class HandshakeListener extends ClassVisitor {
 
     private final TypeChecker typeChecker;
+    private final boolean secure;
 
     private String fieldName;
     private String fieldDesc;
@@ -13,9 +14,10 @@ public class HandshakeListener extends ClassVisitor {
     private String thisName;
     private String handshake;
 
-    public HandshakeListener(ClassVisitor cv, TypeChecker typeChecker) {
+    public HandshakeListener(ClassVisitor cv, TypeChecker typeChecker, boolean secure) {
         super(Opcodes.ASM9, cv);
         this.typeChecker = typeChecker;
+        this.secure = secure;
     }
 
     @Override
@@ -37,7 +39,7 @@ public class HandshakeListener extends ClassVisitor {
 
     @Override
     public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
-        if (name.equals(typeChecker.hsName) && desc.equals(typeChecker.hsDesc)) {
+        if (!secure && name.equals(typeChecker.hsName) && desc.equals(typeChecker.hsDesc)) {
             return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
                 private boolean waitVirt;
 

@@ -14,8 +14,8 @@ import java.util.UUID;
 public class BungeeHelper {
 
     private static final Gson gson = new Gson();
-    public static AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("spoofed-uuid");
-    public static AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("spoofed-props");
+    public static final AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("vc-uuid");
+    public static final AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("vc-properties");
 
     public static void parseHandshake(Object networkManager, Object handshake) {
         try {
@@ -42,13 +42,12 @@ public class BungeeHelper {
             if (host == null || channel == null || socket == null) {
                 throw new RuntimeException("Hook failed");
             }
-            //System.out.println(">> Handshake: " + host); // Debug
             String[] split = host.split("\00");
             if (split.length != 3 && split.length != 4) {
                 throw new RuntimeException("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
-            // split[0]; Vanilla doesn't use this
+            // split[0]; // Vanilla doesn't use this
             socket.setAccessible(true);
             socket.set(networkManager, new InetSocketAddress(split[1], ((InetSocketAddress) socket.get(networkManager)).getPort()));
 

@@ -12,8 +12,8 @@ import java.security.NoSuchAlgorithmException;
 public class Launch {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.out.println("Args: <version>");
+        if (args.length < 1) {
+            System.out.println("Args: <version> [secret]");
             return;
         }
 
