@@ -15,8 +15,8 @@ import java.security.NoSuchAlgorithmException;
 public class Launch {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1) {
-            System.out.println("Args: <version>");
+        if (args.length < 1) {
+            System.out.println("Args: <version> [secret]");
             return;
         }
 
@@ -71,7 +71,7 @@ public class Launch {
             }
         }
 
-        File patchfile = new File("in/" + patchversion + "-patch.jar");
+        File patchfile = new File("in/" + patchversion + "-branch.jar");
         patchfile.getParentFile().mkdirs();
         if (!patchfile.exists()) {
             System.out.println("Downloading patches from branch " + patchversion);
