@@ -1,6 +1,5 @@
 package uk.co.thinkofdeath.vanillacord.util;
 
-import com.google.common.base.Charsets;
 import com.mojang.authlib.properties.Property;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
@@ -28,21 +27,14 @@ import static uk.co.thinkofdeath.vanillacord.util.BungeeHelper.PROPERTIES_KEY;
 public class VelocityHelper {
 
     private static final Object SYNC = new Object();
-    private static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("vc-transaction");
-    private static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("vc-intercepted");
+    public static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("-vch-transaction");
+    public static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
+
+    private static Object namespace = null;
     private static byte[] seecret = null;
     private static int lastTID = Integer.MIN_VALUE;
 
-    private static void classSearch(Class<?> next, ArrayList<Class<?>> types) {
-        types.add(next);
-
-        if (next.getSuperclass() != null && !types.contains(next.getSuperclass())) types.add(next.getSuperclass());
-        for (Class<?> c : next.getInterfaces()) if (!types.contains(c)) {
-            classSearch(c, types);
-        }
-    }
-
-    public static void initializeTransaction(Object networkManager, String queryLocation, Object intercepted) {
+    public static void initializeTransaction(Object networkManager, Class<?> qClass, Object intercepted) {
         try {
             Channel channel = null;
             for (Field field : networkManager.getClass().getDeclaredFields()) {
@@ -67,7 +59,6 @@ public class VelocityHelper {
             channel.attr(INTERCEPTED_PACKET_KEY).set(intercepted);
 
             // Construct the packet
-            Class<?> qClass = Class.forName(queryLocation);
             ArrayList<Class<?>> qTypes = new ArrayList<>();
             classSearch(qClass, qTypes);
 
@@ -88,13 +79,12 @@ public class VelocityHelper {
                     } else if (ByteBuf.class.isAssignableFrom(f.getType())) {
                         f.set(qObject, f.getType().getConstructor(ByteBuf.class).newInstance(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
                     } else if (!f.getType().isPrimitive()) {
-                        f.set(qObject, f.getType().getConstructor(String.class, String.class).newInstance("velocity", "player_info"));
+                        f.set(qObject, getNamespace(f.getType()));
                     }
                 }
             } else {
-                Object namespace = qConstruct.getParameterTypes()[1].getConstructor(String.class, String.class).newInstance("velocity", "player_info");
-                Object payload = qConstruct.getParameterTypes()[2].getConstructor(ByteBuf.class).newInstance(new EmptyByteBuf(ByteBufAllocator.DEFAULT));
-                qObject = qConstruct.newInstance(key, namespace, payload);
+                qObject = qConstruct.newInstance(key, getNamespace(qConstruct.getParameterTypes()[1]),
+                        qConstruct.getParameterTypes()[2].getConstructor(ByteBuf.class).newInstance(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
             }
 
             // Send the packet
@@ -183,7 +173,7 @@ public class VelocityHelper {
                 data.readBytes(received);
                 data.copy(received.length, raw.length).readBytes(raw);
                 Mac mac = Mac.getInstance("HmacSHA256");
-                mac.init(new SecretKeySpec(parseSecret(secret), mac.getAlgorithm()));
+                mac.init(new SecretKeySpec(getSecret(secret), mac.getAlgorithm()));
                 mac.update(raw);
                 byte[] calculated = mac.doFinal();
                 if (!Arrays.equals(calculated, received)) {
@@ -238,6 +228,37 @@ public class VelocityHelper {
         }
     }
 
+    private static Object getNamespace(Class<?> nsClass) throws Exception {
+        if (namespace == null) {
+            namespace = nsClass.getConstructor(String.class, String.class).newInstance("velocity", "player_info");
+        }
+        return namespace;
+    }
+
+    private static byte[] getSecret(String def) throws IOException {
+        if (seecret == null) {
+            File config = new File("seecret.txt");
+            if (config.exists()) {
+                Properties properties = new Properties();
+                try (FileInputStream reader = new FileInputStream(config)) {
+                    properties.load(reader);
+                    seecret = properties.getProperty("modern-forwarding-secret", def).getBytes(UTF_8);
+                }
+            } else {
+                seecret = def.getBytes(UTF_8);
+                PrintWriter writer = new PrintWriter(config, UTF_8.name());
+                writer.println("# Hey, there. We know you already patched in a default secret key for VanillaCord to use,");
+                writer.println("# but if you ever need to change it, you can do so here without re-installing the patches.");
+                writer.println("# ");
+                writer.println("# This file is automatically generated by VanillaCord once a player attempts to join the server.");
+                writer.println();
+                writer.println("modern-forwarding-secret=" + def);
+                writer.close();
+            }
+        }
+        return seecret;
+    }
+
     private static String readString(ByteBuf buf) {
         int len = readVarInt(buf);
         if (len > Short.MAX_VALUE * 4) {
@@ -247,7 +268,7 @@ public class VelocityHelper {
         byte[] b = new byte[len];
         buf.readBytes(b);
 
-        String s = new String(b, Charsets.UTF_8);
+        String s = new String(b, UTF_8);
         if (s.length() > Short.MAX_VALUE) {
             throw new RuntimeException("String is too long");
         }
@@ -271,27 +292,12 @@ public class VelocityHelper {
         return out;
     }
 
-    private static byte[] parseSecret(String def) throws IOException {
-        if (seecret == null) {
-            File config = new File("seecret.txt");
-            if (config.exists()) {
-                Properties properties = new Properties();
-                try (FileInputStream reader = new FileInputStream(config)) {
-                    properties.load(reader);
-                    seecret = properties.getProperty("modern-forwarding-secret", def).getBytes(UTF_8);
-                }
-            } else {
-                seecret = def.getBytes(UTF_8);
-                PrintWriter writer = new PrintWriter(config);
-                writer.println("# Hey, there. We know you already patched in a default secret key for VanillaCord to use,");
-                writer.println("# but if you ever need to change it, you can do so here without re-installing the patches.");
-                writer.println("# ");
-                writer.println("# This file is automatically generated by VanillaCord once a player attempts to join the server.");
-                writer.println();
-                writer.println("modern-forwarding-secret=" + def);
-                writer.close();
-            }
+    private static void classSearch(Class<?> next, ArrayList<Class<?>> types) {
+        types.add(next);
+
+        if (next.getSuperclass() != null && !types.contains(next.getSuperclass())) types.add(next.getSuperclass());
+        for (Class<?> c : next.getInterfaces()) if (!types.contains(c)) {
+            classSearch(c, types);
         }
-        return seecret;
     }
 }

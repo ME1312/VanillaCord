@@ -22,7 +22,7 @@ public class Main {
         }
 
         String version = args[0];
-        String secret = (args.length == 2)?args[1]:null;
+        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
         boolean secure = secret != null;
 
         File in = new File("in/" + version + ".jar");
@@ -122,7 +122,7 @@ public class Main {
                     clazz = classes.get(packet);
                     reader = new ClassReader(clazz);
                     classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                    reader.accept(new LoginPacket(classWriter, serverQuery, ll, Class.forName(loginListener.substring(0, loginListener.length() - 6))), 0);
+                    reader.accept(new LoginPacket(classWriter, ll, loginListener, serverQuery), 0);
                     clazz = classWriter.toByteArray();
                     classes.put(packet, clazz);
                 }
