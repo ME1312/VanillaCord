@@ -25,8 +25,8 @@ import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.*;
 public class VelocityHelper {
 
     private static final Object NAMESPACE;
-    public static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("-vch-transaction");
-    public static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
+    static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("-vch-transaction");
+    static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
 
     private static byte[] seecret = null;
     private static int lastTID = Integer.MIN_VALUE;

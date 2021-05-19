@@ -14,8 +14,8 @@ import java.util.UUID;
 public class BungeeHelper {
 
     private static final Gson GSON = new Gson();
-    public static final AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("-vch-uuid");
-    public static final AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("-vch-properties");
+    static final AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("-vch-uuid");
+    static final AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("-vch-properties");
 
     public static void parseHandshake(Object networkManager, Object handshake) {
         try {

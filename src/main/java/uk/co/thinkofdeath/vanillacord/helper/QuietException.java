@@ -4,8 +4,9 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 
 public class QuietException extends RuntimeException {
-    public QuietException(String text) {
+    QuietException(String text) {
         super(text);
+        this.e = null;
         if (text == null) {
             System.out.println("VanillaCord has disconnected a player because of an unspecified error.");
         } else {
@@ -14,8 +15,8 @@ public class QuietException extends RuntimeException {
         }
     }
 
-    private Throwable e;
-    public QuietException(Throwable e) {
+    private final Throwable e;
+    QuietException(Throwable e) {
         this.e = e;
     }
 
