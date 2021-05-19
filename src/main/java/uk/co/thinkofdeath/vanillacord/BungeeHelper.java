@@ -20,7 +20,7 @@ public class BungeeHelper extends HelperVisitor {
 
     @Override
     protected void generate() {
-        values.put("VCTR-NetworkManager", networkManager.getCanonicalName());
+        values.put("VCTR-NetworkManager", Type.getType(networkManager));
         {
             for (Field field : networkManager.getDeclaredFields()) {
                 if (field.getType().equals(Channel.class)) {
@@ -31,7 +31,7 @@ public class BungeeHelper extends HelperVisitor {
             }
         }
 
-        values.put("VCTR-HandshakePacket", handshakePacket.getCanonicalName());
+        values.put("VCTR-HandshakePacket", Type.getType(handshakePacket));
         {
             for (Field field : handshakePacket.getDeclaredFields()) {
                 if (field.getType().equals(String.class)) {

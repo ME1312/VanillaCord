@@ -22,6 +22,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.UUID_KEY;
 import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.PROPERTIES_KEY;
 
+@SuppressWarnings("ConstantConditions")
 public class VelocityHelper {
 
     private static final Object NAMESPACE;
@@ -227,7 +228,7 @@ public class VelocityHelper {
 
                 channel = BungeeHelper.NetworkManager.channel;
                 socket = BungeeHelper.NetworkManager.socket;
-                sendPacket = clazz.getDeclaredMethod("VCMR-NetworkManager-SendPacket", Class.forName("VCTR-Packet"));
+                sendPacket = clazz.getDeclaredMethod("VCMR-NetworkManager-SendPacket", (Class<?>) (Object) "VCTR-Packet");
             } catch (Throwable e) {
                 (e = new RuntimeException("Class generation failed", e)).printStackTrace();
                 throw (RuntimeException) e;
@@ -241,8 +242,8 @@ public class VelocityHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-LoginListener");
-                handleIntercepted = clazz.getMethod("VCMR-LoginListener-HandleIntercepted", Class.forName("VCTR-InterceptedPacket"));
+                clazz = (Class<?>) (Object) "VCTR-LoginListener";
+                handleIntercepted = clazz.getMethod("VCMR-LoginListener-HandleIntercepted", (Class<?>) (Object) "VCTR-InterceptedPacket");
             } catch (Throwable e) {
                 (e = new RuntimeException("Class generation failed", e)).printStackTrace();
                 throw (RuntimeException) e;
@@ -256,7 +257,7 @@ public class VelocityHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-NamespacedKey");
+                clazz = (Class<?>) (Object) "VCTR-NamespacedKey";
                 constructor = clazz.getConstructor(String.class, String.class);
             } catch (Throwable e) {
                 (e = new RuntimeException("Class generation failed", e)).printStackTrace();
@@ -271,7 +272,7 @@ public class VelocityHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-PacketData");
+                clazz = (Class<?>) (Object) "VCTR-PacketData";
                 constructor = clazz.getConstructor(ByteBuf.class);
             } catch (Throwable e) {
                 (e = new RuntimeException("Class generation failed", e)).printStackTrace();
@@ -283,35 +284,30 @@ public class VelocityHelper {
     static final class LoginRequestPacket {
         public static final Class<?> clazz;
         public static final Constructor<?> constructor;
-        public static final boolean useFields;
+        public static volatile boolean useFields;
         public static final Field transactionID;
         public static final Field namespace;
         public static final Field data;
 
         static {
             try {
-                clazz = Class.forName("VCTR-LoginRequestPacket");
-                Constructor<?> construct = null;
-                Field[] fields = new Field[3];
-                try {
-                    construct = clazz.getConstructor(int.class, NamespacedKey.clazz, PacketData.clazz);
-                } catch (Throwable e) {
-                    fields[0] = clazz.getDeclaredField("VCFR-LoginRequestPacket-TransactionID");
-                    fields[0].setAccessible(true);
+                clazz = (Class<?>) (Object) "VCTR-LoginRequestPacket";
 
-                    fields[1] = clazz.getDeclaredField("VCFR-LoginRequestPacket-Namespace");
-                    fields[1].setAccessible(true);
+                if (useFields) {
+                    constructor = null;
 
-                    fields[2] = clazz.getDeclaredField("VCFR-LoginRequestPacket-Data");
-                    fields[2].setAccessible(true);
+                    transactionID = clazz.getDeclaredField("VCFR-LoginRequestPacket-TransactionID");
+                    transactionID.setAccessible(true);
+
+                    namespace = clazz.getDeclaredField("VCFR-LoginRequestPacket-Namespace");
+                    namespace.setAccessible(true);
+
+                    data = clazz.getDeclaredField("VCFR-LoginRequestPacket-Data");
+                    data.setAccessible(true);
+                } else {
+                    constructor = clazz.getConstructor(int.class, NamespacedKey.clazz, PacketData.clazz);
+                    transactionID = namespace = data = null;
                 }
-
-                constructor = construct;
-                useFields = constructor == null;
-                transactionID = fields[0];
-                namespace = fields[1];
-                data = fields[2];
-
             } catch (Throwable e) {
                 (e = new RuntimeException("Class generation failed", e)).printStackTrace();
                 throw (RuntimeException) e;
@@ -326,7 +322,7 @@ public class VelocityHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-LoginResponsePacket");
+                clazz = (Class<?>) (Object) "VCTR-LoginResponsePacket";
 
                 transactionID = clazz.getDeclaredField("VCFR-LoginResponsePacket-TransactionID");
                 transactionID.setAccessible(true);

@@ -10,7 +10,9 @@ import java.lang.reflect.Field;
 import java.net.InetSocketAddress;
 import java.util.UUID;
 
+@SuppressWarnings("ConstantConditions")
 public class BungeeHelper {
+
     private static final Gson GSON = new Gson();
     public static final AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("-vch-uuid");
     public static final AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("-vch-properties");
@@ -67,7 +69,7 @@ public class BungeeHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-NetworkManager");
+                clazz = (Class<?>) (Object) "VCTR-NetworkManager";
 
                 channel = clazz.getDeclaredField("VCFR-NetworkManager-Channel");
                 channel.setAccessible(true);
@@ -86,7 +88,7 @@ public class BungeeHelper {
 
         static {
             try {
-                clazz = Class.forName("VCTR-HandshakePacket");
+                clazz = (Class<?>) (Object) "VCTR-HandshakePacket";
 
                 hostName = clazz.getDeclaredField("VCFR-HandshakePacket-HostName");
                 hostName.setAccessible(true);

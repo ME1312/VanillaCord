@@ -38,7 +38,7 @@ public class VelocityHelper extends HelperVisitor {
 
     @Override
     protected void generate() {
-     // values.put("VCTR-NetworkManager", networkManager.getCanonicalName());
+     // values.put("VCTR-NetworkManager", Type.getType(networkManager));
         {
             ArrayList<Class<?>> types = new ArrayList<>();
             classSearch(serverQuery, types);
@@ -54,7 +54,7 @@ public class VelocityHelper extends HelperVisitor {
                         }
                     }
                     if (select) {
-                        values.put("VCTR-Packet", param.getCanonicalName());
+                        values.put("VCTR-Packet", Type.getType(param));
                         values.put("VCMR-NetworkManager-SendPacket", m.getName());
                         break;
                     }
@@ -62,7 +62,7 @@ public class VelocityHelper extends HelperVisitor {
             }
         }
 
-        values.put("VCTR-LoginListener", loginListener.getCanonicalName());
+        values.put("VCTR-LoginListener", Type.getType(loginListener));
         {
             for (Method m : loginListener.getMethods()) {
                 if (m.getParameterCount() == 1 && m.getParameterTypes()[0] == loginPacket) {
@@ -72,8 +72,8 @@ public class VelocityHelper extends HelperVisitor {
             }
         }
 
-        values.put("VCTR-InterceptedPacket", loginPacket.getCanonicalName());
-        values.put("VCTR-LoginRequestPacket", serverQuery.getCanonicalName());
+        values.put("VCTR-InterceptedPacket", Type.getType(loginPacket));
+        values.put("VCTR-LoginRequestPacket", Type.getType(serverQuery));
         {
             Constructor<?> qConstruct = null;
             for (Constructor<?> c : serverQuery.getConstructors()) {
@@ -83,27 +83,28 @@ public class VelocityHelper extends HelperVisitor {
                 }
             }
 
+            values.put("VCCR-LoginRequestPacket-UseFields", (qConstruct == null)?1:0);
             if (qConstruct == null) {
                 for (Field f : serverQuery.getDeclaredFields()) {
                     if (!Modifier.isStatic(f.getModifiers())) {
                         if (f.getType() == int.class) {
                             values.put("VCFR-LoginRequestPacket-TransactionID", f.getName());
                         } else if (ByteBuf.class.isAssignableFrom(f.getType())) {
-                            values.put("VCTR-PacketData", f.getType().getCanonicalName());
+                            values.put("VCTR-PacketData", Type.getType(f.getType()));
                             values.put("VCFR-LoginRequestPacket-Data", f.getName());
                         } else if (!f.getType().isPrimitive()) {
-                            values.put("VCTR-NamespacedKey", f.getType().getCanonicalName());
+                            values.put("VCTR-NamespacedKey", Type.getType(f.getType()));
                             values.put("VCFR-LoginRequestPacket-Namespace", f.getName());
                         }
                     }
                 }
             } else {
-                values.put("VCTR-NamespacedKey", qConstruct.getParameterTypes()[1].getCanonicalName());
-                values.put("VCTR-PacketData", qConstruct.getParameterTypes()[2].getCanonicalName());
+                values.put("VCTR-NamespacedKey", Type.getType(qConstruct.getParameterTypes()[1]));
+                values.put("VCTR-PacketData", Type.getType(qConstruct.getParameterTypes()[2]));
             }
         }
 
-        values.put("VCTR-LoginResponsePacket", clientQuery.getCanonicalName());
+        values.put("VCTR-LoginResponsePacket", Type.getType(clientQuery));
         {
             for (Field f : clientQuery.getDeclaredFields()) {
                 if (!Modifier.isStatic(f.getModifiers())) {
