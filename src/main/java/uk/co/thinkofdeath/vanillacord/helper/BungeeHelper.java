@@ -53,10 +53,15 @@ public class BungeeHelper {
     }
 
     static RuntimeException exception(String text, Throwable e) {
-        e.printStackTrace();
-        if (e instanceof RuntimeException && (text == null || text.equals(e.getMessage()))) {
-            return (RuntimeException) e;
-        } else return new RuntimeException(text, e);
+        if (e instanceof QuietException) {
+            return (QuietException) e;
+        } else if (e.getCause() instanceof QuietException) {
+            return (QuietException) e.getCause();
+        } else {
+            if (text != null) e = new RuntimeException(text, e);
+            e.printStackTrace();
+            return new QuietException(e);
+        }
     }
 
     // Pre-calculate reflection for obfuscated references
