@@ -83,7 +83,7 @@ public class VelocityHelper extends HelperVisitor {
                 }
             }
 
-            values.put("VCCR-LoginRequestPacket-UseFields", (qConstruct == null)?1:0);
+            values.put("VCCR-LoginRequestPacket-UseFields", qConstruct == null);
             if (qConstruct == null) {
                 for (Field f : serverQuery.getDeclaredFields()) {
                     if (!Modifier.isStatic(f.getModifiers())) {

@@ -32,14 +32,9 @@ public class BungeeHelper {
 
             String uuid = split[2];
             channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-" + uuid.substring(16, 20) + "-" + uuid.substring(20, 32)));
-
             channel.attr(PROPERTIES_KEY).set(GSON.fromJson((split.length > 3)?split[3]:"[]", Property[].class));
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw exception(null, e);
         }
     }
 
@@ -53,12 +48,15 @@ public class BungeeHelper {
             }
             return profile;
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw exception(null, e);
         }
+    }
+
+    static RuntimeException exception(String text, Throwable e) {
+        e.printStackTrace();
+        if (e instanceof RuntimeException && (text == null || text.equals(e.getMessage()))) {
+            return (RuntimeException) e;
+        } else return new RuntimeException(text, e);
     }
 
     // Pre-calculate reflection for obfuscated references
@@ -77,8 +75,7 @@ public class BungeeHelper {
                 socket = clazz.getDeclaredField("VCFR-NetworkManager-Socket");
                 socket.setAccessible(true);
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -93,8 +90,7 @@ public class BungeeHelper {
                 hostName = clazz.getDeclaredField("VCFR-HandshakePacket-HostName");
                 hostName.setAccessible(true);
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }

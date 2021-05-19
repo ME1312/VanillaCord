@@ -19,8 +19,7 @@ import java.util.Properties;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.UUID_KEY;
-import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.PROPERTIES_KEY;
+import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.*;
 
 @SuppressWarnings("ConstantConditions")
 public class VelocityHelper {
@@ -65,11 +64,7 @@ public class VelocityHelper {
             NetworkManager.sendPacket.invoke(networkManager, qObject);
 
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw exception(null, e);
         }
     }
 
@@ -120,7 +115,7 @@ public class VelocityHelper {
             // Compare versioning information
             int version = readVarInt(data); /*
             if (version != 1) {
-                throw new IPForwardingException("Received incompatible IP forwarding data")
+                throw new QuietException("Received incompatible IP forwarding data")
             } */
 
             // Retrieve IP forwarding data
@@ -138,11 +133,7 @@ public class VelocityHelper {
             // Continue login flow
             LoginListener.handleIntercepted.invoke(loginManager, intercepted);
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw exception(null, e);
         }
     }
 
@@ -150,11 +141,7 @@ public class VelocityHelper {
         try {
             NAMESPACE = NamespacedKey.constructor.newInstance("velocity", "player_info");
         } catch (Exception e) {
-            e.printStackTrace();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            }
-            throw new RuntimeException(e);
+            throw exception(null, e);
         }
     }
 
@@ -230,8 +217,7 @@ public class VelocityHelper {
                 socket = BungeeHelper.NetworkManager.socket;
                 sendPacket = clazz.getDeclaredMethod("VCMR-NetworkManager-SendPacket", (Class<?>) (Object) "VCTR-Packet");
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -245,8 +231,7 @@ public class VelocityHelper {
                 clazz = (Class<?>) (Object) "VCTR-LoginListener";
                 handleIntercepted = clazz.getMethod("VCMR-LoginListener-HandleIntercepted", (Class<?>) (Object) "VCTR-InterceptedPacket");
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -260,8 +245,7 @@ public class VelocityHelper {
                 clazz = (Class<?>) (Object) "VCTR-NamespacedKey";
                 constructor = clazz.getConstructor(String.class, String.class);
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -275,8 +259,7 @@ public class VelocityHelper {
                 clazz = (Class<?>) (Object) "VCTR-PacketData";
                 constructor = clazz.getConstructor(ByteBuf.class);
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -309,8 +292,7 @@ public class VelocityHelper {
                     transactionID = namespace = data = null;
                 }
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }
@@ -330,8 +312,7 @@ public class VelocityHelper {
                 data = clazz.getDeclaredField("VCFR-LoginResponsePacket-Data");
                 data.setAccessible(true);
             } catch (Throwable e) {
-                (e = new RuntimeException("Class generation failed", e)).printStackTrace();
-                throw (RuntimeException) e;
+                throw exception("Class generation failed", e);
             }
         }
     }

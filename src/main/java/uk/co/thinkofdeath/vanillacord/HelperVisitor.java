@@ -1,5 +1,6 @@
 package uk.co.thinkofdeath.vanillacord;
 
+import com.google.common.primitives.Primitives;
 import org.objectweb.asm.*;
 
 import java.util.HashMap;
@@ -42,9 +43,8 @@ public abstract class HelperVisitor extends ClassVisitor {
                         int sort = Type.getType(desc).getSort();
                         if ((Type.ARRAY > sort && sort > Type.VOID)) {
                             Object replacement = values.get("VCCR-" + innerName + '-' + name.substring(0, 1).toUpperCase(Locale.ENGLISH) + name.substring(1));
-                            if (replacement != null) {
-                                if ((access & Opcodes.ACC_VOLATILE) != 0) access &= ~Opcodes.ACC_VOLATILE;
-                                return super.visitField(access | Opcodes.ACC_FINAL, name, desc, signature, replacement);
+                            if (replacement != null && Primitives.isWrapperType(replacement.getClass())) {
+                                return super.visitField((access & ~Opcodes.ACC_VOLATILE) | Opcodes.ACC_FINAL, name, desc, signature, replacement);
                             }
                         }
                     }
@@ -54,13 +54,25 @@ public abstract class HelperVisitor extends ClassVisitor {
                 @Override // Replace direct string constants in <clinit>
                 public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
                     return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
+                        boolean ignorecast = false;
+
                         @Override
                         public void visitLdcInsn(Object value) {
                             Object replacement;
                             if (value instanceof String && (replacement = values.get(value)) != null) {
+                                ignorecast = !(replacement instanceof String);
                                 super.visitLdcInsn(replacement);
                             } else {
                                 super.visitLdcInsn(value);
+                            }
+                        }
+
+                        @Override
+                        public void visitTypeInsn(int opcode, String type) {
+                            if (ignorecast && opcode == Opcodes.CHECKCAST) {
+                                ignorecast = false;
+                            } else {
+                                super.visitTypeInsn(opcode, type);
                             }
                         }
                     };
