@@ -22,7 +22,6 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.UUID_KEY;
 import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.PROPERTIES_KEY;
 
-@SuppressWarnings("JavaReflectionInvocation")
 public class VelocityHelper {
 
     private static final Object NAMESPACE;
@@ -150,6 +149,7 @@ public class VelocityHelper {
         try {
             NAMESPACE = NamespacedKey.constructor.newInstance("velocity", "player_info");
         } catch (Exception e) {
+            e.printStackTrace();
             if (e instanceof RuntimeException) {
                 throw (RuntimeException) e;
             }

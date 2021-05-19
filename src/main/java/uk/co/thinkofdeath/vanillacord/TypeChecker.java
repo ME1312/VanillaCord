@@ -40,19 +40,21 @@ public class TypeChecker extends ClassVisitor {
 
             @Override
             public void visitLdcInsn(Object cst) {
-                if (secure) {
-                    if (hasTID && "Payload may not be larger than 1048576 bytes".equals(cst)) {
-                        cbQuery = fCount == 2;
-                        sbQuery = fCount == 3;
+                if (cst instanceof String) {
+                    if (secure) {
+                        if (hasTID && "Payload may not be larger than 1048576 bytes".equals(cst)) {
+                            cbQuery = fCount == 2;
+                            sbQuery = fCount == 3;
+                        }
                     }
-                }
-                if (cst instanceof String && (((String) cst).startsWith("multiplayer.disconnect.outdated_server") || ((String) cst).startsWith("multiplayer.disconnect.incompatible"))) {
-                    handshakeListener = true;
-                    hsName = name;
-                    hsDesc = desc;
-                }
-                if ("Unexpected hello packet".equals(cst)) {
-                    loginListener = true;
+                    if ("multiplayer.disconnect.outdated_server".equals(cst) || "multiplayer.disconnect.incompatible".equals(cst)) {
+                        handshakeListener = true;
+                        hsName = name;
+                        hsDesc = desc;
+                    }
+                    if ("Unexpected hello packet".equals(cst)) {
+                        loginListener = true;
+                    }
                 }
             }
         };
