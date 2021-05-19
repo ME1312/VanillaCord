@@ -1,7 +1,6 @@
 package uk.co.thinkofdeath.vanillacord;
 
 import org.objectweb.asm.*;
-import org.objectweb.asm.commons.GeneratorAdapter;
 
 public class HandshakeListener extends ClassVisitor {
 
@@ -65,7 +64,7 @@ public class HandshakeListener extends ClassVisitor {
                         mv.visitVarInsn(Opcodes.ALOAD, 2);
                         mv.visitVarInsn(Opcodes.ALOAD, 1);
                         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                "uk/co/thinkofdeath/vanillacord/util/BungeeHelper",
+                                "uk/co/thinkofdeath/vanillacord/helper/BungeeHelper",
                                 "parseHandshake",
                                 "(Ljava/lang/Object;Ljava/lang/Object;)V", false
                         );

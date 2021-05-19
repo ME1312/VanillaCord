@@ -53,7 +53,7 @@ public class LoginListener extends ClassVisitor {
             mv.visitVarInsn(Opcodes.ALOAD, 2);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    "uk/co/thinkofdeath/vanillacord/util/BungeeHelper",
+                    "uk/co/thinkofdeath/vanillacord/helper/BungeeHelper",
                     "injectProfile",
                     "(Ljava/lang/Object;Lcom/mojang/authlib/GameProfile;)Lcom/mojang/authlib/GameProfile;",
                     false);
@@ -78,7 +78,7 @@ public class LoginListener extends ClassVisitor {
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(secret);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    "uk/co/thinkofdeath/vanillacord/util/VelocityHelper",
+                    "uk/co/thinkofdeath/vanillacord/helper/VelocityHelper",
                     "completeTransaction",
                     "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/String;)V", false
             );

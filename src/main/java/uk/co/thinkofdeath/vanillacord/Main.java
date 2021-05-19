@@ -5,10 +5,7 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -31,11 +28,9 @@ public class Main {
         if (out.exists()) out.delete();
 
         try (ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
-             ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out));
-             InputStream helper = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/util/BungeeHelper.class");
-             InputStream exhelper = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/util/VelocityHelper.class")) {
+             ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out))) {
 
-            HashMap<String, byte[]> classes = new HashMap<>();
+            LinkedHashMap<String, byte[]> classes = new LinkedHashMap<>();
 
             if (secure) System.out.println("Requested modern IP forwarding");
             System.out.println("Loading");
@@ -63,6 +58,7 @@ public class Main {
 
             String handshakePacket = null;
             String loginListener = null;
+            String loginPacket = null;
             String serverQuery = null;
             String clientQuery = null;
             String networkManager = null;
@@ -117,14 +113,14 @@ public class Main {
                 classes.put(loginListener, clazz);
 
             // Intercept the login process
+                loginPacket = ll.getPacket() + ".class";
                 if (secure) {
-                    String packet = ll.getPacket() + ".class";
-                    clazz = classes.get(packet);
+                    clazz = classes.get(loginPacket);
                     reader = new ClassReader(clazz);
                     classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                    reader.accept(new LoginPacket(classWriter, ll, loginListener, serverQuery), 0);
+                    reader.accept(new LoginPacket(classWriter, ll, loginListener), 0);
                     clazz = classWriter.toByteArray();
-                    classes.put(packet, clazz);
+                    classes.put(loginPacket, clazz);
                 }
             }
             // Change the server brand
@@ -137,18 +133,41 @@ public class Main {
                 classes.put("net/minecraft/server/MinecraftServer.class", clazz);
             }
 
+            System.out.println("Generating helper classes");
+
+            {
+                InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/BungeeHelper.class");
+                LinkedHashMap<String, byte[]> queue = new LinkedHashMap<>();
+                ClassReader classReader = new ClassReader(clazz);
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                classReader.accept(new BungeeHelper(queue, classWriter, networkManager, handshakePacket), 0);
+                classes.put("uk/co/thinkofdeath/vanillacord/helper/BungeeHelper.class", classWriter.toByteArray());
+                classes.putAll(queue);
+                clazz.close();
+            }
+
+            if (secure) {
+                InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/VelocityHelper.class");
+                LinkedHashMap<String, byte[]> queue = new LinkedHashMap<>();
+                ClassReader classReader = new ClassReader(clazz);
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                classReader.accept(new VelocityHelper(queue, classWriter, networkManager, loginListener, loginPacket, serverQuery, clientQuery), 0);
+                classes.put("uk/co/thinkofdeath/vanillacord/helper/VelocityHelper.class", classWriter.toByteArray());
+                classes.putAll(queue);
+                clazz.close();
+
+            }
+
+            System.out.println("Exporting patched jarfile");
             for (Map.Entry<String, byte[]> e : classes.entrySet()) {
                 zop.putNextEntry(new ZipEntry(e.getKey()));
                 zop.write(e.getValue());
             }
 
-            System.out.println("Adding helper");
-            zop.putNextEntry(new ZipEntry("uk/co/thinkofdeath/vanillacord/util/BungeeHelper.class"));
-            ByteStreams.copy(helper, zop);
-            if (secure) {
-                zop.putNextEntry(new ZipEntry("uk/co/thinkofdeath/vanillacord/util/VelocityHelper.class"));
-                ByteStreams.copy(exhelper, zop);
-            }
+            InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/QuietException.class");
+            zop.putNextEntry(new ZipEntry("uk/co/thinkofdeath/vanillacord/helper/QuietException.class"));
+            ByteStreams.copy(clazz, zop);
+            clazz.close();
         }
     }
 }

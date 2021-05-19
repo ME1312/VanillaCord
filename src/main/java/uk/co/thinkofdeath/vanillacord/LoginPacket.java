@@ -8,12 +8,10 @@ public class LoginPacket extends ClassVisitor {
 
     private final LoginListener loginListener;
     private final ArrayList<Type> loginTypes = new ArrayList<>();
-    private final Type serverQuery;
 
-    public LoginPacket(ClassWriter classWriter, LoginListener loginListener, String loginType, String serverQuery) throws ClassNotFoundException {
+    public LoginPacket(ClassWriter classWriter, LoginListener loginListener, String loginType) throws ClassNotFoundException {
         super(Opcodes.ASM9, classWriter);
         this.loginListener = loginListener;
-        this.serverQuery = Type.getType(Class.forName(serverQuery.substring(0, serverQuery.length() - 6)));
         typeSearch(Class.forName(loginType.substring(0, loginType.length() - 6)), loginTypes);
     }
 
@@ -48,12 +46,11 @@ public class LoginPacket extends ClassVisitor {
 
             mv.visitLabel(new Label());
             mv.visitVarInsn(Opcodes.ALOAD, 2);
-            mv.visitLdcInsn(serverQuery);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                    "uk/co/thinkofdeath/vanillacord/util/VelocityHelper",
+                    "uk/co/thinkofdeath/vanillacord/helper/VelocityHelper",
                     "initializeTransaction",
-                    "(Ljava/lang/Object;Ljava/lang/Class;Ljava/lang/Object;)V", false
+                    "(Ljava/lang/Object;Ljava/lang/Object;)V", false
             );
             mv.visitInsn(Opcodes.RETURN);
             mv.visitMaxs(2, 2);
