@@ -81,9 +81,9 @@ public class VelocityHelper {
             ByteBuf data = (ByteBuf) LoginResponsePacket.data.get(response);
 
             if (key != channel.attr(TRANSACTION_ID_KEY).get()) {
-                throw new QuietException("Invalid transaction ID: " + key);
+                throw QuietException.notify("Invalid transaction ID: " + key);
             } if (data == null) {
-                throw new QuietException("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
+                throw QuietException.notify("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
             }
 
 
@@ -108,14 +108,14 @@ public class VelocityHelper {
                         s2.append(Integer.toString((received[i] & 0xff) + 0x100, 16).substring(1));
                     }
 
-                    throw new QuietException("Received invalid IP forwarding data: " + s1 + " != " + s2);
+                    throw QuietException.notify("Received invalid IP forwarding data: " + s1 + " != " + s2);
                 }
             }
 
             // Compare versioning information
             int version = readVarInt(data); /*
             if (version != 1) {
-                throw new QuietException("Received incompatible IP forwarding data")
+                throw QuietException.notify("Received incompatible IP forwarding data")
             } */
 
             // Retrieve IP forwarding data

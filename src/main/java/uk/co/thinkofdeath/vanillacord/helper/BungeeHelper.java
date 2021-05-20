@@ -24,7 +24,7 @@ public class BungeeHelper {
 
             String[] split = host.split("\00");
             if (split.length != 3 && split.length != 4) {
-                throw new QuietException("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
+                throw QuietException.show("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
             // split[0]; // Vanilla doesn't use this
