@@ -20,7 +20,7 @@ public class BungeeHelper {
     public static void parseHandshake(Object networkManager, Object handshake) {
         try {
             Channel channel = (Channel) NetworkManager.channel.get(networkManager);
-            String host = (String) Handshake.hostName.get(handshake);
+            String host = Handshake.getHostName(handshake);
 
             String[] split = host.split("\00");
             if (split.length != 3 && split.length != 4) {
@@ -64,15 +64,14 @@ public class BungeeHelper {
         }
     }
 
-    // Pre-calculate reflection for obfuscated references
+    // Pre-calculate references to obfuscated classes
     static final class NetworkManager {
-        public static final Class<?> clazz;
         public static final Field channel;
         public static final Field socket;
 
         static {
             try {
-                clazz = (Class<?>) (Object) "VCTR-NetworkManager";
+                Class<?> clazz = (Class<?>) (Object) "VCTR-NetworkManager";
 
                 channel = clazz.getDeclaredField("VCFR-NetworkManager-Channel");
                 channel.setAccessible(true);
@@ -85,17 +84,24 @@ public class BungeeHelper {
         }
     }
     static final class Handshake {
-        public static final Class<?> clazz;
-        public static final Field hostName;
+        private static final Field hostName;
 
         static {
             try {
-                clazz = (Class<?>) (Object) "VCTR-HandshakePacket";
+                Class<?> clazz = (Class<?>) (Object) "VCTR-HandshakePacket";
 
                 hostName = clazz.getDeclaredField("VCFR-HandshakePacket-HostName");
                 hostName.setAccessible(true);
             } catch (Throwable e) {
                 throw exception("Class generation failed", e);
+            }
+        }
+
+        public static String getHostName(Object instance) {
+            try {
+                return (String) Handshake.hostName.get(instance);
+            } catch (Exception e) {
+                throw exception(null, e);
             }
         }
     }

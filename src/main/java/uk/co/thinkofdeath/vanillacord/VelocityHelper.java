@@ -115,7 +115,7 @@ public class VelocityHelper extends HelperVisitor {
                 values.put("VCTR-PacketData", Type.getType(qConstruct.getParameterTypes()[2]));
 
                 for (Method m : clientQuery.getDeclaredMethods()) {
-                    if (m.getParameterCount() == 0) {
+                    if (!Modifier.isStatic(m.getModifiers()) && m.getParameterCount() == 0) {
                         if (m.getReturnType() == int.class) {
                             values.put("VCM-LoginResponsePacket-GetTransactionID", m);
                         } else if (ByteBuf.class.isAssignableFrom(m.getReturnType())) {
