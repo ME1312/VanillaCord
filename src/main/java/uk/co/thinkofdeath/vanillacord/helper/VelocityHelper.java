@@ -24,7 +24,7 @@ import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.*;
 @SuppressWarnings("ConstantConditions")
 public class VelocityHelper {
 
-    private static final Object NAMESPACE;
+    private static final Object NAMESPACE = NamespacedKey.construct("velocity", "player_info");
     static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("-vch-transaction");
     static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
 
@@ -47,21 +47,9 @@ public class VelocityHelper {
             channel.attr(TRANSACTION_ID_KEY).set(key);
             channel.attr(INTERCEPTED_PACKET_KEY).set(intercepted);
 
-            // Construct the packet
-
-            Object qObject;
-            if (LoginRequestPacket.useFields) {
-                qObject = LoginRequestPacket.clazz.newInstance();
-
-                LoginRequestPacket.transactionID.set(qObject, key);
-                LoginRequestPacket.namespace.set(qObject, NAMESPACE);
-                LoginRequestPacket.data.set(qObject, PacketData.constructor.newInstance(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
-            } else {
-                qObject = LoginRequestPacket.constructor.newInstance(key, NAMESPACE, PacketData.constructor.newInstance(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
-            }
-
             // Send the packet
-            NetworkManager.sendPacket.invoke(networkManager, qObject);
+            Object qObject = LoginRequestPacket.construct(key, NAMESPACE, PacketData.construct(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
+            NetworkManager.sendPacket(networkManager, qObject);
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -77,8 +65,8 @@ public class VelocityHelper {
             }
 
             // Retrieve & release the previously generated unique key
-            int key = (int) LoginResponsePacket.transactionID.get(response);
-            ByteBuf data = (ByteBuf) LoginResponsePacket.data.get(response);
+            int key = LoginResponsePacket.getTransactionID(response);
+            ByteBuf data = LoginResponsePacket.getData(response);
 
             if (key != channel.attr(TRANSACTION_ID_KEY).get()) {
                 throw QuietException.notify("Invalid transaction ID: " + key);
@@ -131,15 +119,7 @@ public class VelocityHelper {
             channel.attr(PROPERTIES_KEY).set(properties);
 
             // Continue login flow
-            LoginListener.handleIntercepted.invoke(loginManager, intercepted);
-        } catch (Exception e) {
-            throw exception(null, e);
-        }
-    }
-
-    static {
-        try {
-            NAMESPACE = NamespacedKey.constructor.newInstance("velocity", "player_info");
+            LoginListener.handleIntercepted(loginManager, intercepted);
         } catch (Exception e) {
             throw exception(null, e);
         }
@@ -202,109 +182,81 @@ public class VelocityHelper {
         return out;
     }
 
-    // Pre-calculate reflection for obfuscated references
+    // Pre-calculate references to obfuscated classes
     static final class NetworkManager {
-        public static final Class<?> clazz;
-        public static final Field channel;
-        public static final Field socket;
-        public static final Method sendPacket;
+        public static final Field channel = BungeeHelper.NetworkManager.channel;
+        public static final Field socket = BungeeHelper.NetworkManager.socket;
 
-        static {
-            try {
-                clazz = BungeeHelper.NetworkManager.clazz;
-
-                channel = BungeeHelper.NetworkManager.channel;
-                socket = BungeeHelper.NetworkManager.socket;
-                sendPacket = clazz.getDeclaredMethod("VCMR-NetworkManager-SendPacket", (Class<?>) (Object) "VCTR-Packet");
-            } catch (Throwable e) {
-                throw exception("Class generation failed", e);
-            }
+        public static void sendPacket(Object instance, Object packet) {
+            throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
     static final class LoginListener {
-        public static final Class<?> clazz;
-        public static final Method handleIntercepted;
 
-        static {
-            try {
-                clazz = (Class<?>) (Object) "VCTR-LoginListener";
-                handleIntercepted = clazz.getMethod("VCMR-LoginListener-HandleIntercepted", (Class<?>) (Object) "VCTR-InterceptedPacket");
-            } catch (Throwable e) {
-                throw exception("Class generation failed", e);
-            }
+        public static void handleIntercepted(Object instance, Object packet) {
+            throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
     static final class NamespacedKey {
-        public static final Class<?> clazz;
-        public static final Constructor<?> constructor;
 
-        static {
-            try {
-                clazz = (Class<?>) (Object) "VCTR-NamespacedKey";
-                constructor = clazz.getConstructor(String.class, String.class);
-            } catch (Throwable e) {
-                throw exception("Class generation failed", e);
-            }
+        public static Object construct(String name, String id) {
+            throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
     static final class PacketData {
-        public static final Class<?> clazz;
-        public static final Constructor<?> constructor;
 
-        static {
-            try {
-                clazz = (Class<?>) (Object) "VCTR-PacketData";
-                constructor = clazz.getConstructor(ByteBuf.class);
-            } catch (Throwable e) {
-                throw exception("Class generation failed", e);
-            }
+        public static ByteBuf construct(ByteBuf data) {
+            throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
     static final class LoginRequestPacket {
-        public static final Class<?> clazz;
-        public static final Constructor<?> constructor;
-        public static volatile boolean useFields;
-        public static final Field transactionID;
-        public static final Field namespace;
-        public static final Field data;
+        private static final Field transactionID;
+        private static final Field namespace;
+        private static final Field data;
 
         static {
             try {
-                clazz = (Class<?>) (Object) "VCTR-LoginRequestPacket";
+                Class<?> clazz = (Class<?>) (Object) "VCTR-LoginRequestPacket";
 
-                if (useFields) {
-                    constructor = null;
+                transactionID = clazz.getDeclaredField("VCFR-LoginRequestPacket-TransactionID");
+                transactionID.setAccessible(true);
 
-                    transactionID = clazz.getDeclaredField("VCFR-LoginRequestPacket-TransactionID");
-                    transactionID.setAccessible(true);
+                namespace = clazz.getDeclaredField("VCFR-LoginRequestPacket-Namespace");
+                namespace.setAccessible(true);
 
-                    namespace = clazz.getDeclaredField("VCFR-LoginRequestPacket-Namespace");
-                    namespace.setAccessible(true);
-
-                    data = clazz.getDeclaredField("VCFR-LoginRequestPacket-Data");
-                    data.setAccessible(true);
-                } else {
-                    constructor = clazz.getConstructor(int.class, NamespacedKey.clazz, PacketData.clazz);
-                    transactionID = namespace = data = null;
-                }
+                data = clazz.getDeclaredField("VCFR-LoginRequestPacket-Data");
+                data.setAccessible(true);
             } catch (Throwable e) {
                 throw exception("Class generation failed", e);
+            }
+        }
+
+        public static Object construct(int transactionID, Object namespace, ByteBuf data) {
+            try {
+                Object packet = "VCIR-LoginRequestPacket-Construct";
+
+                LoginRequestPacket.transactionID.set(packet, transactionID);
+                LoginRequestPacket.namespace.set(packet, namespace);
+                LoginRequestPacket.data.set(packet, PacketData.construct(data));
+
+                return packet;
+            } catch (Exception e) {
+                throw exception(null, e);
             }
         }
     }
 
     static final class LoginResponsePacket {
-        public static final Class<?> clazz;
-        public static final Field transactionID;
-        public static final Field data;
+        private static final Field transactionID;
+        private static final Field data;
 
         static {
             try {
-                clazz = (Class<?>) (Object) "VCTR-LoginResponsePacket";
+                Class<?> clazz = (Class<?>) (Object) "VCTR-LoginResponsePacket";
 
                 transactionID = clazz.getDeclaredField("VCFR-LoginResponsePacket-TransactionID");
                 transactionID.setAccessible(true);
@@ -313,6 +265,22 @@ public class VelocityHelper {
                 data.setAccessible(true);
             } catch (Throwable e) {
                 throw exception("Class generation failed", e);
+            }
+        }
+
+        public static int getTransactionID(Object instance) {
+            try {
+                return (int) LoginResponsePacket.transactionID.get(instance);
+            } catch (Exception e) {
+                throw exception(null, e);
+            }
+        }
+
+        public static ByteBuf getData(Object instance) {
+            try {
+                return (ByteBuf) LoginResponsePacket.data.get(instance);
+            } catch (Exception e) {
+                throw exception(null, e);
             }
         }
     }
