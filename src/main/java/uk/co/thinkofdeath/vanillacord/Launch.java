@@ -21,18 +21,19 @@ public class Launch {
         System.out.println("Searching versions");
 
         String mcversion = args[0].toLowerCase();
-        JSONObject mcprofile = null;
-        JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
-        for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
-            if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(mcversion.toString())) {
-                mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
-                break;
-            }
-        } if (mcprofile == null) throw new IllegalArgumentException("Could not find server version for " + mcversion);
-
         File in = new File("in/" + mcversion + ".jar");
         in.getParentFile().mkdirs();
+
         if (!in.exists()) {
+            JSONObject mcprofile = null;
+            JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
+            for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
+                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(mcversion.toString())) {
+                    mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
+                    break;
+                }
+            } if (mcprofile == null) throw new IllegalArgumentException("Could not find version metadata for " + mcversion);
+
             System.out.println("Downloading Minecraft Server " + mcversion);
             try (FileOutputStream fin = new FileOutputStream(in)) {
                 Resources.copy(new URL(mcprofile.getJSONObject("downloads").getJSONObject("server").getString("url")), fin);
@@ -46,6 +47,8 @@ public class Launch {
                 in.delete();
                 throw e;
             }
+        } else {
+            System.out.println("Found Minecraft Server " + mcversion);
         }
 
         URLOverrideClassLoader loader = new URLOverrideClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
