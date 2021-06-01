@@ -1,7 +1,7 @@
 # VanillaCord
 [![Build Status](https://dev.me1312.net/jenkins/job/VanillaCord/job/master/badge/icon)](https://dev.me1312.net/jenkins/job/VanillaCord/job/master/)
-[![Release Verison](https://img.shields.io/github/release/ME1312/VanillaCord/all.svg)](https://github.com/ME1312/VanillaCord/releases)<br><br>
-<br>
+[![Release Verison](https://img.shields.io/github/release/ME1312/VanillaCord/all.svg)](https://github.com/ME1312/VanillaCord/releases)<br>
+
 VanillaCord adds support for BungeeCord's `ip-forwarding` option on vanilla Minecraft servers
 > [https://www.spigotmc.org/resources/vanillacord.952/](https://www.spigotmc.org/resources/vanillacord.952/)
 
