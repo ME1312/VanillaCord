@@ -12,12 +12,12 @@ import java.security.NoSuchAlgorithmException;
 public class Launch {
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1) {
+        if (args.length != 1 && args.length != 2) {
             System.out.println("Args: <version> [secret]");
             return;
         }
 
-        System.out.println("VanillaCord branch 1.12");
+        System.out.println("VanillaCord 1.7");
         System.out.println("Searching versions");
 
         String mcversion = args[0].toLowerCase();

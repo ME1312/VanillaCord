@@ -47,7 +47,7 @@ public class TypeChecker extends ClassVisitor {
                             sbQuery = fCount == 3;
                         }
                     }
-                    if ("multiplayer.disconnect.outdated_server".equals(cst) || "multiplayer.disconnect.incompatible".equals(cst)) {
+                    if ("multiplayer.disconnect.incompatible".equals(cst) || "multiplayer.disconnect.outdated_server".equals(cst) || ((String) cst).startsWith("Outdated client! Please use")) {
                         handshakeListener = true;
                         hsName = name;
                         hsDesc = desc;

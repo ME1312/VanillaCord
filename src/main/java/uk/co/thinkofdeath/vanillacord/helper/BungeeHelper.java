@@ -14,8 +14,8 @@ import java.util.UUID;
 public class BungeeHelper {
 
     private static final Gson GSON = new Gson();
-    static final AttributeKey<UUID> UUID_KEY = AttributeKey.valueOf("-vch-uuid");
-    static final AttributeKey<Property[]> PROPERTIES_KEY = AttributeKey.valueOf("-vch-properties");
+    static final AttributeKey<UUID> UUID_KEY = NetworkManager.getAttribute("-vch-uuid");
+    static final AttributeKey<Property[]> PROPERTIES_KEY = NetworkManager.getAttribute("-vch-properties");
 
     public static void parseHandshake(Object networkManager, Object handshake) {
         try {
@@ -27,7 +27,7 @@ public class BungeeHelper {
                 throw QuietException.show("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
-            // split[0]; // Vanilla doesn't use this
+        //  split[0]; // we don't do anything with the server address
             NetworkManager.socket.set(networkManager, new InetSocketAddress(split[1], ((InetSocketAddress) NetworkManager.socket.get(networkManager)).getPort()));
 
             String uuid = split[2];
@@ -81,6 +81,11 @@ public class BungeeHelper {
             } catch (Throwable e) {
                 throw exception("Class generation failed", e);
             }
+        }
+
+        // this isn't obfuscated, but was changed in 1.12
+        public static <T> AttributeKey<T> getAttribute(String key) {
+            return AttributeKey.valueOf(key);
         }
     }
     static final class Handshake {

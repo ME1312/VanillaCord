@@ -1,13 +1,19 @@
 package uk.co.thinkofdeath.vanillacord;
 
 import io.netty.channel.Channel;
+import io.netty.util.AttributeKey;
 import org.objectweb.asm.*;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.SocketAddress;
 import java.util.LinkedHashMap;
+import java.util.logging.LogManager;
 
 public class BungeeHelper extends HelperVisitor {
     private final Class<?> networkManager;
@@ -16,8 +22,17 @@ public class BungeeHelper extends HelperVisitor {
 
     public BungeeHelper(LinkedHashMap<String, byte[]> queue, ClassWriter classWriter, String networkManager, String handshakePacket) throws ClassNotFoundException {
         super(queue, classWriter);
-        this.networkManager = Class.forName(Type.getType(networkManager).getClassName());
-        this.handshakePacket = Class.forName(handshakePacket);
+
+        // The following code prevents some unrelated messages from appearing
+        PrintStream err = System.err;
+        System.setErr(new QuietStream());
+        LogManager.getLogManager().reset();
+        try {
+            this.networkManager = Class.forName(Type.getType(networkManager).getClassName());
+            this.handshakePacket = Class.forName(handshakePacket);
+        } finally {
+            System.setErr(err);
+        }
     }
 
     @Override
@@ -58,7 +73,29 @@ public class BungeeHelper extends HelperVisitor {
 
     @Override
     protected MethodVisitor rewriteMethod(String tag, MethodVisitor mv) {
-        if (tag.equals("Handshake::getHostName")) {
+        if (tag.equals("NetworkManager::getAttribute")) {
+            try {
+                Type attribute = Type.getType(AttributeKey.class);
+                Constructor<?> constructor = AttributeKey.class.getConstructor(String.class);
+
+                mv.visitCode();
+                mv.visitLabel(new Label());
+                mv.visitTypeInsn(Opcodes.NEW, attribute.getInternalName());
+                mv.visitInsn(Opcodes.DUP);
+                mv.visitVarInsn(Opcodes.ALOAD, 0);
+                mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                        attribute.getInternalName(),
+                        "<init>",
+                        Type.getConstructorDescriptor(constructor), false
+                );
+                mv.visitInsn(Opcodes.ARETURN);
+                mv.visitMaxs(2, 2);
+                mv.visitEnd();
+                return null;
+            } catch (NoSuchMethodException e) {
+                return mv;
+            }
+        } else if (tag.equals("Handshake::getHostName")) {
             if (useFields) {
                 return mv;
             } else {
@@ -92,5 +129,16 @@ public class BungeeHelper extends HelperVisitor {
     @Override
     protected boolean keepField(String tag) {
         return useFields || !tag.startsWith("Handshake.");
+    }
+
+    private static final class QuietStream extends PrintStream {
+        private QuietStream() {
+            super(new OutputStream() {
+                @Override
+                public void write(int b) throws IOException {
+                    // This is a quiet stream
+                }
+            });
+        }
     }
 }
