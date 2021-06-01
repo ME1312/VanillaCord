@@ -23,7 +23,7 @@ public class Main {
         boolean secure = secret != null;
 
         File in = new File("in/" + version + ".jar");
-        File out = new File("out/" + version + "-bungee.jar");
+        File out = new File("out/" + version + '-' + ((secure)?"velocity":"bungee") + ".jar");
         out.getParentFile().mkdirs();
         if (out.exists()) out.delete();
 

@@ -105,6 +105,7 @@ public class VelocityHelper {
 
             // Continue login flow
             LoginListener.handleIntercepted(loginManager, intercepted);
+
         } catch (Exception e) {
             throw exception(null, e);
         }

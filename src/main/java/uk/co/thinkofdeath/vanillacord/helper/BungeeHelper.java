@@ -31,8 +31,9 @@ public class BungeeHelper {
             NetworkManager.socket.set(networkManager, new InetSocketAddress(split[1], ((InetSocketAddress) NetworkManager.socket.get(networkManager)).getPort()));
 
             String uuid = split[2];
-            channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + "-" + uuid.substring(8, 12) + "-" + uuid.substring(12, 16) + "-" + uuid.substring(16, 20) + "-" + uuid.substring(20, 32)));
+            channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + '-' + uuid.substring(8, 12) + '-' + uuid.substring(12, 16) + '-' + uuid.substring(16, 20) + '-' + uuid.substring(20, 32)));
             channel.attr(PROPERTIES_KEY).set(GSON.fromJson((split.length > 3)?split[3]:"[]", Property[].class));
+
         } catch (Exception e) {
             throw exception(null, e);
         }
