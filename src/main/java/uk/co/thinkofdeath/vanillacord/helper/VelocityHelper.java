@@ -36,18 +36,18 @@ public class VelocityHelper {
                 throw new IllegalStateException("Unexpected login request");
             }
 
-            // Reserve a unique key
-            int key;
+            // Generate an id
+            int id;
             synchronized (NAMESPACE) {
                 if (lastTID == Integer.MAX_VALUE) lastTID = Integer.MIN_VALUE;
-                key = ++lastTID;
+                id = ++lastTID;
             }
-            channel.attr(TRANSACTION_ID_KEY).set(key);
+            channel.attr(TRANSACTION_ID_KEY).set(id);
             channel.attr(INTERCEPTED_PACKET_KEY).set(intercepted);
 
             // Send the packet
-            Object qObject = LoginRequestPacket.construct(key, NAMESPACE, PacketData.construct(new EmptyByteBuf(ByteBufAllocator.DEFAULT)));
-            NetworkManager.sendPacket(networkManager, qObject);
+            Object request = LoginRequestPacket.construct(id, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
+            NetworkManager.sendPacket(networkManager, request);
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -62,12 +62,12 @@ public class VelocityHelper {
                 throw new IllegalStateException("Unexpected login response");
             }
 
-            // Retrieve & release the previously generated unique key
-            int key = LoginResponsePacket.getTransactionID(response);
+            // Validate the previously generated id
+            int id = LoginResponsePacket.getTransactionID(response);
             ByteBuf data = LoginResponsePacket.getData(response);
 
-            if (key != channel.attr(TRANSACTION_ID_KEY).get()) {
-                throw QuietException.notify("Invalid transaction ID: " + key);
+            if (id != channel.attr(TRANSACTION_ID_KEY).get()) {
+                throw QuietException.notify("Invalid transaction ID: " + id);
             } if (data == null) {
                 throw QuietException.notify("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
             }
@@ -195,13 +195,6 @@ public class VelocityHelper {
         }
     }
 
-    static final class PacketData {
-
-        public static ByteBuf construct(ByteBuf data) {
-            throw exception("Class generation failed", new NoSuchMethodError());
-        }
-    }
-
     static final class LoginRequestPacket {
         private static final Field transactionID;
         private static final Field namespace;
@@ -230,7 +223,7 @@ public class VelocityHelper {
 
                 LoginRequestPacket.transactionID.set(packet, transactionID);
                 LoginRequestPacket.namespace.set(packet, namespace);
-                LoginRequestPacket.data.set(packet, PacketData.construct(data));
+                LoginRequestPacket.data.set(packet, "VCIR-PacketData-Construct");
 
                 return packet;
             } catch (Exception e) {

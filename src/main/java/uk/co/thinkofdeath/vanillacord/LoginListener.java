@@ -47,10 +47,6 @@ public class LoginListener extends ClassVisitor {
             mv.visitLabel(new Label());
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldName, fieldDesc);
-            mv.visitVarInsn(Opcodes.ASTORE, 2);
-
-            mv.visitLabel(new Label());
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                     "uk/co/thinkofdeath/vanillacord/helper/BungeeHelper",
@@ -67,13 +63,10 @@ public class LoginListener extends ClassVisitor {
                 && methodArgs.getReturnType().equals(Type.VOID_TYPE)) {
             MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
             mv.visitCode();
+
             mv.visitLabel(new Label());
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldName, fieldDesc);
-            mv.visitVarInsn(Opcodes.ASTORE, 2);
-
-            mv.visitLabel(new Label());
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitLdcInsn(secret);

@@ -55,13 +55,10 @@ public class HandshakeListener extends ClassVisitor {
                     if (waitVirt && opcode == Opcodes.INVOKEVIRTUAL) {
                         System.out.println("Hooking");
                         waitVirt = false;
+
                         mv.visitLabel(new Label());
                         mv.visitVarInsn(Opcodes.ALOAD, 0);
                         mv.visitFieldInsn(Opcodes.GETFIELD, thisName, fieldName, fieldDesc);
-                        mv.visitVarInsn(Opcodes.ASTORE, 2);
-
-                        mv.visitLabel(new Label());
-                        mv.visitVarInsn(Opcodes.ALOAD, 2);
                         mv.visitVarInsn(Opcodes.ALOAD, 1);
                         mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                                 "uk/co/thinkofdeath/vanillacord/helper/BungeeHelper",

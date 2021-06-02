@@ -193,30 +193,13 @@ public class VelocityHelper extends HelperVisitor {
                     mv.visitEnd();
                     return null;
                 }
-                case "PacketData::construct": {
-                    Type data = (Type) values.get("VCTR-PacketData");
-                    Constructor<?> constructor = getClass(data).getConstructor(ByteBuf.class);
-
-                    mv.visitCode();
-                    mv.visitLabel(new Label());
-                    mv.visitTypeInsn(Opcodes.NEW, data.getInternalName());
-                    mv.visitInsn(Opcodes.DUP);
-                    mv.visitVarInsn(Opcodes.ALOAD, 0);
-                    mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
-                            data.getInternalName(),
-                            "<init>",
-                            Type.getConstructorDescriptor(constructor), false
-                    );
-                    mv.visitInsn(Opcodes.ARETURN);
-                    mv.visitMaxs(2, 2);
-                    mv.visitEnd();
-                    return null;
-                }
                 case "LoginRequestPacket::construct": {
                     Type request = (Type) values.get("VCTR-LoginRequestPacket");
+                    Type data = (Type) values.get("VCTR-PacketData");
+                    Constructor<?> construct_data = getClass(data).getConstructor(ByteBuf.class);
 
                     if (useFields) {
-                        Constructor<?> constructor = getClass(request).getConstructor();
+                        Constructor<?> construct_request = getClass(request).getConstructor();
 
                         return new MethodVisitor(Opcodes.ASM9, mv) {
                             @Override
@@ -227,7 +210,16 @@ public class VelocityHelper extends HelperVisitor {
                                     mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                                             request.getInternalName(),
                                             "<init>",
-                                            Type.getConstructorDescriptor(constructor), false
+                                            Type.getConstructorDescriptor(construct_request), false
+                                    );
+                                } else if ("VCIR-PacketData-Construct".equals(value)) {
+                                    mv.visitTypeInsn(Opcodes.NEW, data.getInternalName());
+                                    mv.visitInsn(Opcodes.DUP);
+                                    mv.visitVarInsn(Opcodes.ALOAD, 2);
+                                    mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                                            data.getInternalName(),
+                                            "<init>",
+                                            Type.getConstructorDescriptor(construct_data), false
                                     );
                                 } else {
                                     super.visitLdcInsn(value);
@@ -236,8 +228,7 @@ public class VelocityHelper extends HelperVisitor {
                         };
                     } else {
                         Type namespace = (Type) values.get("VCTR-NamespacedKey");
-                        Type data = (Type) values.get("VCTR-PacketData");
-                        Constructor<?> constructor = getClass(request).getConstructor(int.class, getClass(namespace), getClass(data));
+                        Constructor<?> construct_request = getClass(request).getConstructor(int.class, getClass(namespace), getClass(data));
 
                         mv.visitCode();
                         mv.visitLabel(new Label());
@@ -246,12 +237,18 @@ public class VelocityHelper extends HelperVisitor {
                         mv.visitVarInsn(Opcodes.ILOAD, 0);
                         mv.visitVarInsn(Opcodes.ALOAD, 1);
                         mv.visitTypeInsn(Opcodes.CHECKCAST, namespace.getInternalName());
+                        mv.visitTypeInsn(Opcodes.NEW, data.getInternalName());
+                        mv.visitInsn(Opcodes.DUP);
                         mv.visitVarInsn(Opcodes.ALOAD, 2);
-                        mv.visitTypeInsn(Opcodes.CHECKCAST, data.getInternalName());
+                        mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
+                                data.getInternalName(),
+                                "<init>",
+                                Type.getConstructorDescriptor(construct_data), false
+                        );
                         mv.visitMethodInsn(Opcodes.INVOKESPECIAL,
                                 request.getInternalName(),
                                 "<init>",
-                                Type.getConstructorDescriptor(constructor), false
+                                Type.getConstructorDescriptor(construct_request), false
                         );
                         mv.visitInsn(Opcodes.ARETURN);
                         mv.visitMaxs(2, 2);

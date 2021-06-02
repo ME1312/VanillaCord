@@ -38,14 +38,11 @@ public class LoginPacket extends ClassVisitor {
                 && (exceptions == null || exceptions.length == 0)) {
             MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
             mv.visitCode();
+
             mv.visitLabel(new Label());
             mv.visitVarInsn(Opcodes.ALOAD, 1);
             mv.visitTypeInsn(Opcodes.CHECKCAST, loginListener.thisName);
             mv.visitFieldInsn(Opcodes.GETFIELD, loginListener.thisName, loginListener.fieldName, loginListener.fieldDesc);
-            mv.visitVarInsn(Opcodes.ASTORE, 2);
-
-            mv.visitLabel(new Label());
-            mv.visitVarInsn(Opcodes.ALOAD, 2);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
             mv.visitMethodInsn(Opcodes.INVOKESTATIC,
                     "uk/co/thinkofdeath/vanillacord/helper/VelocityHelper",
