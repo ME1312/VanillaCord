@@ -103,12 +103,8 @@ public class BungeeHelper {
             }
         }
 
-        public static String getHostName(Object instance) {
-            try {
-                return (String) Handshake.hostName.get(instance);
-            } catch (Exception e) {
-                throw exception(null, e);
-            }
+        public static String getHostName(Object instance) throws Exception {
+            return (String) Handshake.hostName.get(instance);
         }
     }
 }

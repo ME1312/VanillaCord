@@ -172,14 +172,12 @@ public class VelocityHelper {
 
     // Pre-calculate references to obfuscated classes
     static final class LoginListener {
-
         public static void handle(Object instance, Object packet) {
             throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
     static final class NamespacedKey {
-
         public static Object construct(String name, String id) {
             throw exception("Class generation failed", new NoSuchMethodError());
         }
