@@ -10,6 +10,7 @@ import java.util.Locale;
 public abstract class HelperVisitor extends ClassVisitor {
     protected final HashMap<String, Object> values = new HashMap<>();
     private final LinkedHashMap<String, byte[]> queue;
+    private String name;
 
     protected HelperVisitor(LinkedHashMap<String, byte[]> queue, ClassWriter writer) {
         super(Opcodes.ASM9, writer);
@@ -42,6 +43,7 @@ public abstract class HelperVisitor extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         generate();
+        this.name = name;
         super.visit(version, access, name, signature, superName, interfaces);
     }
 
@@ -49,7 +51,7 @@ public abstract class HelperVisitor extends ClassVisitor {
     public void visitInnerClass(String name, String outerName, String innerName, int access) {
         super.visitInnerClass(name, outerName, innerName, access);
 
-        try {
+        if (this.name.equals(outerName)) try {
             ClassReader classReader = new ClassReader(Main.class.getResourceAsStream('/' + name + ".class"));
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
             classReader.accept(new ClassVisitor(Opcodes.ASM9, classWriter) {

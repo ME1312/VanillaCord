@@ -46,8 +46,7 @@ public class VelocityHelper {
             channel.attr(INTERCEPTED_PACKET_KEY).set(intercepted);
 
             // Send the packet
-            Object request = LoginRequestPacket.construct(id, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
-            NetworkManager.sendPacket(networkManager, request);
+            LoginRequestPacket.send(networkManager, id, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -104,7 +103,7 @@ public class VelocityHelper {
             channel.attr(PROPERTIES_KEY).set(properties);
 
             // Continue login flow
-            LoginListener.handleIntercepted(loginManager, intercepted);
+            LoginListener.handle(loginManager, intercepted);
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -172,18 +171,9 @@ public class VelocityHelper {
     }
 
     // Pre-calculate references to obfuscated classes
-    static final class NetworkManager {
-        public static final Field channel = BungeeHelper.NetworkManager.channel;
-        public static final Field socket = BungeeHelper.NetworkManager.socket;
-
-        public static void sendPacket(Object instance, Object packet) {
-            throw exception("Class generation failed", new NoSuchMethodError());
-        }
-    }
-
     static final class LoginListener {
 
-        public static void handleIntercepted(Object instance, Object packet) {
+        public static void handle(Object instance, Object packet) {
             throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
@@ -217,18 +207,8 @@ public class VelocityHelper {
             }
         }
 
-        public static Object construct(int transactionID, Object namespace, ByteBuf data) {
-            try {
-                Object packet = "VCIR-LoginRequestPacket-Construct";
-
-                LoginRequestPacket.transactionID.set(packet, transactionID);
-                LoginRequestPacket.namespace.set(packet, namespace);
-                LoginRequestPacket.data.set(packet, "VCIR-PacketData-Construct");
-
-                return packet;
-            } catch (Exception e) {
-                throw exception(null, e);
-            }
+        public static void send(Object networkManager, int transactionID, Object namespace, ByteBuf data) throws Exception {
+            throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
 
@@ -250,20 +230,12 @@ public class VelocityHelper {
             }
         }
 
-        public static int getTransactionID(Object instance) {
-            try {
-                return (int) LoginResponsePacket.transactionID.get(instance);
-            } catch (Exception e) {
-                throw exception(null, e);
-            }
+        public static int getTransactionID(Object instance) throws Exception {
+            return (int) LoginResponsePacket.transactionID.get(instance);
         }
 
-        public static ByteBuf getData(Object instance) {
-            try {
-                return (ByteBuf) LoginResponsePacket.data.get(instance);
-            } catch (Exception e) {
-                throw exception(null, e);
-            }
+        public static ByteBuf getData(Object instance) throws Exception {
+            return (ByteBuf) LoginResponsePacket.data.get(instance);
         }
     }
 }
