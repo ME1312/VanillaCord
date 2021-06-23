@@ -27,12 +27,10 @@ public class URLOverrideClassLoader extends ClassLoader {
 
         @Override
         public Class<?> findClass(String name) throws ClassNotFoundException {
-            try
-            {
+            try {
                 // first try to use the URLClassLoader findClass
                 return super.findClass(name);
-            }
-            catch( ClassNotFoundException e ) {
+            } catch (ClassNotFoundException e) {
                 // if that fails, we ask our real parent classloader to load the class (we give up)
                 return realParent.loadClass(name);
             }
@@ -46,15 +44,11 @@ public class URLOverrideClassLoader extends ClassLoader {
     }
 
     @Override
-    protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException
-    {
-        try
-        {
+    protected synchronized Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
+        try {
             // first we try to find a class inside the child classloader
             return childClassLoader.findClass(name);
-        }
-        catch( ClassNotFoundException e )
-        {
+        } catch(ClassNotFoundException e) {
             // didn't find it, try the parent
             return super.loadClass(name, resolve);
         }

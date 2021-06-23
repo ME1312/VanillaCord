@@ -102,7 +102,7 @@ public class LoginListener extends ClassVisitor {
                 }
                 if (state == 4) {
                     setState(4, 5);
-                    mv.visitIntInsn(Opcodes.BIPUSH, 0);
+                    mv.visitInsn(Opcodes.ICONST_0);
                     return;
                 }
                 super.visitMethodInsn(opcode, owner, name, desc, itf);

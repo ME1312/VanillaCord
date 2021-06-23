@@ -23,7 +23,7 @@ public class BungeeHelper {
             String host = Handshake.getHostName(handshake);
 
             String[] split = host.split("\00");
-            if (split.length != 3 && split.length != 4) {
+            if (split.length != 4 && split.length != 3) {
                 throw QuietException.show("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
@@ -32,7 +32,7 @@ public class BungeeHelper {
 
             String uuid = split[2];
             channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + '-' + uuid.substring(8, 12) + '-' + uuid.substring(12, 16) + '-' + uuid.substring(16, 20) + '-' + uuid.substring(20, 32)));
-            channel.attr(PROPERTIES_KEY).set(GSON.fromJson((split.length > 3)?split[3]:"[]", Property[].class));
+            channel.attr(PROPERTIES_KEY).set((split.length == 3)? new Property[0] : GSON.fromJson(split[3], Property[].class));
 
         } catch (Exception e) {
             throw exception(null, e);
