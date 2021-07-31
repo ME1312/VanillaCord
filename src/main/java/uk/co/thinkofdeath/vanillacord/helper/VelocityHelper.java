@@ -229,7 +229,7 @@ public class VelocityHelper {
         }
 
         public static int getTransactionID(Object instance) throws Exception {
-            return (int) LoginResponsePacket.transactionID.get(instance);
+            return LoginResponsePacket.transactionID.getInt(instance);
         }
 
         public static ByteBuf getData(Object instance) throws Exception {

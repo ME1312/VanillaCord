@@ -203,15 +203,10 @@ public class VelocityHelper extends HelperVisitor {
                         );
                         mv.visitVarInsn(Opcodes.ALOAD, 4);
                         mv.visitVarInsn(Opcodes.ILOAD, 1);
-                        mv.visitMethodInsn(Opcodes.INVOKESTATIC,
-                                Type.getType(Integer.class).getInternalName(),
-                                "valueOf",
-                                Type.getMethodDescriptor(Integer.class.getMethod("valueOf", int.class)), false
-                        );
                         mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
                                 field.getInternalName(),
-                                set_field.getName(),
-                                Type.getMethodDescriptor(set_field), false
+                                "setInt",
+                                Type.getMethodDescriptor(Field.class.getMethod("setInt", Object.class, int.class)), false
                         );
 
                         mv.visitLabel(new Label());
