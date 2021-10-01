@@ -46,12 +46,14 @@ public class BEv1 extends BundleEditor {
         }
 
         if (out == null) {
-            System.out.println("Failed extracting " + version + ".jar");
+            System.out.println("Cannot locate server file, giving up");
         } else {
             File in = new File(out.getParentFile(), out.getName() + ".tmp");
             Files.move(out.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
             VCClassLoader loader = new VCClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, out, secret);
+            loader.close();
+            in.delete();
 
             server = out;
             update();
@@ -61,7 +63,7 @@ public class BEv1 extends BundleEditor {
     @Override
     public void update() throws Exception {
         Set<String> mojangCantEvenJar = new HashSet<>();
-        File out = new File(this.out, version + ".jar");
+        File out = new File(this.out.getParentFile(), this.out.getName() + ".jar");
         if (out.exists()) out.delete();
         try (
                 ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
@@ -113,10 +115,5 @@ public class BEv1 extends BundleEditor {
             return false;
         }
         return true;
-    }
-
-    @Override
-    protected void close() throws Exception {
-        super.close();
     }
 }

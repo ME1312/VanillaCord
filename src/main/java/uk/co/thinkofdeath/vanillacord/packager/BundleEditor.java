@@ -1,7 +1,6 @@
 package uk.co.thinkofdeath.vanillacord.packager;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.jar.Attributes;
@@ -71,6 +70,7 @@ public abstract class BundleEditor {
             return output.toString();
         }
     }
+
     protected static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
         int cp;
@@ -78,20 +78,5 @@ public abstract class BundleEditor {
             sb.append((char) cp);
         }
         return sb.toString();
-    }
-    public static void deleteDirectory(File folder) {
-        File[] files = folder.listFiles();
-        if(files!=null) {
-            for(File f : files) {
-                if(f.isDirectory() && !Files.isSymbolicLink(f.toPath())) {
-                    deleteDirectory(f);
-                } else try {
-                    Files.delete(f.toPath());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        folder.delete();
     }
 }

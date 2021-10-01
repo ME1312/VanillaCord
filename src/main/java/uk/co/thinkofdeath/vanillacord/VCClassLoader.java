@@ -1,5 +1,6 @@
 package uk.co.thinkofdeath.vanillacord;
 
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -52,5 +53,9 @@ public class VCClassLoader extends ClassLoader {
             // didn't find it, try the parent
             return super.loadClass(name, resolve);
         }
+    }
+
+    public void close() throws IOException {
+        childClassLoader.close();
     }
 }
