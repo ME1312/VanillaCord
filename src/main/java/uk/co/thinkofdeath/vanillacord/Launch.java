@@ -2,6 +2,7 @@ package uk.co.thinkofdeath.vanillacord;
 
 import com.google.common.io.Resources;
 import org.json.JSONObject;
+import uk.co.thinkofdeath.vanillacord.packager.BundleEditor;
 
 import java.io.*;
 import java.net.URL;
@@ -17,24 +18,27 @@ public class Launch {
             return;
         }
 
-        System.out.println("VanillaCord 1.7");
+        System.out.println("VanillaCord 1.8");
         System.out.println("Searching versions");
 
-        String mcversion = args[0].toLowerCase();
-        File in = new File("in/" + mcversion + ".jar");
+        String version = args[0].toLowerCase();
+        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:"";
+
+        File in = new File("in/" + version + ".jar");
+        File out = new File("out/" + version + '-' + ((secret.length() > 0)?"velocity":"bungee"));
         in.getParentFile().mkdirs();
 
         if (!in.exists()) {
             JSONObject mcprofile = null;
             JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
             for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
-                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(mcversion.toString())) {
+                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(version.toString())) {
                     mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
                     break;
                 }
-            } if (mcprofile == null) throw new IllegalArgumentException("Could not find version metadata for " + mcversion);
+            } if (mcprofile == null) throw new IllegalArgumentException("Could not find version metadata for " + version);
 
-            System.out.println("Downloading Minecraft Server " + mcversion);
+            System.out.println("Downloading Minecraft Server " + version);
             try (FileOutputStream fin = new FileOutputStream(in)) {
                 Resources.copy(new URL(mcprofile.getJSONObject("downloads").getJSONObject("server").getString("url")), fin);
 
@@ -48,11 +52,13 @@ public class Launch {
                 throw e;
             }
         } else {
-            System.out.println("Found Minecraft Server " + mcversion);
+            System.out.println("Found Minecraft Server " + version);
         }
 
-        URLOverrideClassLoader loader = new URLOverrideClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
-        loader.loadClass("uk.co.thinkofdeath.vanillacord.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
+        if (!BundleEditor.edit(in, out, version, secret)) {
+            VCClassLoader loader = new VCClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
+            loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, new File(out.getParentFile(), out.getName() + ".jar"), secret);
+        }
     }
 
     private static String sha1(File file) throws IOException, NoSuchAlgorithmException {

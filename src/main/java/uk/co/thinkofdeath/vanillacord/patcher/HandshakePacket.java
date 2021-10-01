@@ -1,4 +1,4 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.patcher;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;

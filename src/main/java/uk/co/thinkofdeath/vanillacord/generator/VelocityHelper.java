@@ -1,4 +1,4 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.generator;
 
 import io.netty.buffer.ByteBuf;
 import org.objectweb.asm.*;
@@ -18,7 +18,7 @@ public class VelocityHelper extends HelperVisitor {
     private final Class<?> clientQuery;
     private boolean useFields = true;
 
-    protected VelocityHelper(LinkedHashMap<String, byte[]> queue, ClassWriter classWriter, String networkManager, String loginListener, String loginPacket, String serverQuery, String clientQuery) throws ClassNotFoundException {
+    public VelocityHelper(LinkedHashMap<String, byte[]> queue, ClassWriter classWriter, String networkManager, String loginListener, String loginPacket, String serverQuery, String clientQuery) throws ClassNotFoundException {
         super(queue, classWriter);
         this.networkManager = Class.forName(Type.getType(networkManager).getClassName());
         this.loginListener = getClass(loginListener);

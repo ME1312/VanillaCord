@@ -1,4 +1,4 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.generator;
 
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;

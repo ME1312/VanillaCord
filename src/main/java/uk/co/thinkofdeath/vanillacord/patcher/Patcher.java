@@ -1,8 +1,10 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.patcher;
 
 import com.google.common.io.ByteStreams;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
+import uk.co.thinkofdeath.vanillacord.generator.BungeeHelper;
+import uk.co.thinkofdeath.vanillacord.generator.VelocityHelper;
 
 import java.io.*;
 import java.util.*;
@@ -10,20 +12,31 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class Main {
+public class Patcher {
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 1 && args.length != 2) {
-            System.out.println("Args: <version> [secret]");
+        if (args.length != 2 && args.length != 3) {
+            System.out.println("Args: <input> <output> [secret]");
             return;
         }
 
-        String version = args[0];
-        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
+        File in = new File(args[0]);
+        if (!in.isFile()) {
+            System.out.println("Cannot find input file: " + args[0]);
+            return;
+        }
+
+        File out = new File(args[1]);
+        if (!out.getParentFile().exists() && !out.getParentFile().mkdirs()) {
+            System.out.println("Cannot use output directory: " + out.getParentFile().toString());
+        }
+
+        patch(in, out, (args.length == 3 && args[2].length() > 0)?args[2]:"");
+    }
+
+    public static void patch(File in, File out, String secret) throws Exception {
         boolean secure = secret != null;
 
-        File in = new File("in/" + version + ".jar");
-        File out = new File("out/" + version + '-' + ((secure)?"velocity":"bungee") + ".jar");
         out.getParentFile().mkdirs();
         if (out.exists()) out.delete();
 
@@ -136,7 +149,7 @@ public class Main {
             System.out.println("Generating helper classes");
 
             {
-                InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/BungeeHelper.class");
+                InputStream clazz = Patcher.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/BungeeHelper.class");
                 LinkedHashMap<String, byte[]> queue = new LinkedHashMap<>();
                 ClassReader classReader = new ClassReader(clazz);
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -147,7 +160,7 @@ public class Main {
             }
 
             if (secure) {
-                InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/VelocityHelper.class");
+                InputStream clazz = Patcher.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/VelocityHelper.class");
                 LinkedHashMap<String, byte[]> queue = new LinkedHashMap<>();
                 ClassReader classReader = new ClassReader(clazz);
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -164,7 +177,7 @@ public class Main {
                 zop.write(e.getValue());
             }
 
-            InputStream clazz = Main.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/QuietException.class");
+            InputStream clazz = Patcher.class.getResourceAsStream("/uk/co/thinkofdeath/vanillacord/helper/QuietException.class");
             zop.putNextEntry(new ZipEntry("uk/co/thinkofdeath/vanillacord/helper/QuietException.class"));
             ByteStreams.copy(clazz, zop);
             clazz.close();

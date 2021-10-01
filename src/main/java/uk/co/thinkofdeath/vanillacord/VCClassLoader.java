@@ -3,7 +3,7 @@ package uk.co.thinkofdeath.vanillacord;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class URLOverrideClassLoader extends ClassLoader {
+public class VCClassLoader extends ClassLoader {
     private ChildURLClassLoader childClassLoader;
 
     private static class FindClassClassLoader extends ClassLoader {
@@ -37,7 +37,7 @@ public class URLOverrideClassLoader extends ClassLoader {
         }
     }
 
-    public URLOverrideClassLoader(URL[] overrides) {
+    public VCClassLoader(URL[] overrides) {
         super(Thread.currentThread().getContextClassLoader());
 
         childClassLoader = new ChildURLClassLoader(overrides, new FindClassClassLoader(this.getParent()));

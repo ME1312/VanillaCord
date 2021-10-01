@@ -1,4 +1,4 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.patcher;
 
 import com.mojang.authlib.GameProfile;
 import org.objectweb.asm.*;

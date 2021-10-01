@@ -1,7 +1,8 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.generator;
 
 import com.google.common.primitives.Primitives;
 import org.objectweb.asm.*;
+import uk.co.thinkofdeath.vanillacord.patcher.Patcher;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -52,7 +53,7 @@ public abstract class HelperVisitor extends ClassVisitor {
         super.visitInnerClass(name, outerName, innerName, access);
 
         if (this.name.equals(outerName)) try {
-            ClassReader classReader = new ClassReader(Main.class.getResourceAsStream('/' + name + ".class"));
+            ClassReader classReader = new ClassReader(Patcher.class.getResourceAsStream('/' + name + ".class"));
             ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
             classReader.accept(new ClassVisitor(Opcodes.ASM9, classWriter) {
 
