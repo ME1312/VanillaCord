@@ -4,10 +4,7 @@ import com.google.common.io.ByteStreams;
 import uk.co.thinkofdeath.vanillacord.Launch;
 import uk.co.thinkofdeath.vanillacord.VCClassLoader;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -27,10 +24,21 @@ public class BEv1 extends BundleEditor {
 
     @Override
     public void extract() throws Exception {
+        System.out.println("Running the self-extracting server bundle");
+
+        PrintStream out = System.out;
+        if (!Boolean.getBoolean("vc.debug")) System.setOut(new PrintStream(new OutputStream() {
+            @Override
+            public void write(int b) throws IOException {
+                // This code prevents the self-extracting archive from logging verbosely
+            }
+        }));
+
         URLClassLoader loader = new URLClassLoader(new URL[]{in.toURI().toURL()});
-        System.setProperty("bundlerRepoDir", out.toString());
+        System.setProperty("bundlerRepoDir", this.out.toString());
         System.setProperty("bundlerMainClass", "uk.co.thinkofdeath.vanillacord.packager.BundleEditor");
         loader.loadClass("net.minecraft.bundler.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) new String[0]);
+        System.setOut(out);
     }
 
     @Override

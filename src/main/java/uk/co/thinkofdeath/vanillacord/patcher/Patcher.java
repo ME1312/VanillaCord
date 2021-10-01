@@ -31,7 +31,7 @@ public class Patcher {
             System.out.println("Cannot use output directory: " + out.getParentFile().toString());
         }
 
-        patch(in, out, (args.length == 3 && args[2].length() > 0)?args[2]:"");
+        patch(in, out, (args.length == 3 && args[2].length() > 0)?args[2]:null);
     }
 
     public static void patch(File in, File out, String secret) throws Exception {

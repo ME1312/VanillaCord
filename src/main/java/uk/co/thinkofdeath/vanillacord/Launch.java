@@ -22,10 +22,10 @@ public class Launch {
         System.out.println("Searching versions");
 
         String version = args[0].toLowerCase();
-        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:"";
+        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
 
         File in = new File("in/" + version + ".jar");
-        File out = new File("out/" + version + '-' + ((secret.length() > 0)?"velocity":"bungee"));
+        File out = new File("out/" + version + '-' + ((secret != null)?"velocity":"bungee"));
         in.getParentFile().mkdirs();
 
         if (!in.exists()) {

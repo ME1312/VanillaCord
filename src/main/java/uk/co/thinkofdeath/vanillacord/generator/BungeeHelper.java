@@ -25,8 +25,10 @@ public class BungeeHelper extends HelperVisitor {
 
         // The following code prevents some unrelated messages from appearing
         PrintStream err = System.err;
-        System.setErr(new QuietStream());
-        LogManager.getLogManager().reset();
+        if (!Boolean.getBoolean("vc.debug")) {
+            System.setErr(new QuietStream());
+            LogManager.getLogManager().reset();
+        }
         try {
             this.networkManager = Class.forName(Type.getType(networkManager).getClassName());
             this.handshakePacket = Class.forName(handshakePacket);
