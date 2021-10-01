@@ -1,8 +1,6 @@
 package uk.co.thinkofdeath.vanillacord.packager;
 
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
@@ -48,35 +46,5 @@ public abstract class BundleEditor {
     public abstract boolean update(ZipInputStream zip, ZipOutputStream stream, String path, ZipEntry entry) throws Exception;
     protected void close() throws Exception {
         if (current == this) current = null;
-    }
-
-    // Utility methods
-    protected static String sha256(File file) throws IOException, NoSuchAlgorithmException {
-        MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
-        try (InputStream input = new FileInputStream(file)) {
-            byte[] buffer = new byte[8192];
-            int len = input.read(buffer);
-
-            while (len != -1) {
-                sha256.update(buffer, 0, len);
-                len = input.read(buffer);
-            }
-
-            byte[] digest = sha256.digest();
-            StringBuilder output = new StringBuilder();
-            for (int i=0; i < digest.length; i++) {
-                output.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            return output.toString();
-        }
-    }
-
-    protected static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
     }
 }

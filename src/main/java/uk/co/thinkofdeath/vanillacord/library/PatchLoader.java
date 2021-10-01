@@ -1,10 +1,10 @@
-package uk.co.thinkofdeath.vanillacord;
+package uk.co.thinkofdeath.vanillacord.library;
 
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
-public class VCClassLoader extends ClassLoader {
+public class PatchLoader extends ClassLoader {
     private ChildURLClassLoader childClassLoader;
 
     private static class FindClassClassLoader extends ClassLoader {
@@ -38,7 +38,7 @@ public class VCClassLoader extends ClassLoader {
         }
     }
 
-    public VCClassLoader(URL[] overrides) {
+    public PatchLoader(URL[] overrides) {
         super(Thread.currentThread().getContextClassLoader());
 
         childClassLoader = new ChildURLClassLoader(overrides, new FindClassClassLoader(this.getParent()));

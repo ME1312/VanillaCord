@@ -2,7 +2,7 @@ package uk.co.thinkofdeath.vanillacord.packager;
 
 import com.google.common.io.ByteStreams;
 import uk.co.thinkofdeath.vanillacord.Launch;
-import uk.co.thinkofdeath.vanillacord.VCClassLoader;
+import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 
 import java.io.*;
 import java.net.URL;
@@ -16,11 +16,14 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
+
 public class BEv1 extends BundleEditor {
+    protected File server;
+
     protected BEv1(File in, File out, String version, String secret) {
         super(in, out, version, secret);
     }
-    protected File server;
 
     @Override
     public void extract() throws Exception {
@@ -58,7 +61,7 @@ public class BEv1 extends BundleEditor {
         } else {
             File in = new File(out.getParentFile(), out.getName() + ".tmp");
             Files.move(out.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            VCClassLoader loader = new VCClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
+            PatchLoader loader = new PatchLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, out, secret);
             loader.close();
             in.delete();
@@ -114,7 +117,7 @@ public class BEv1 extends BundleEditor {
 
             zop.putNextEntry(new ZipEntry(path));
             zop.write(edited.toString().getBytes(StandardCharsets.UTF_8));
-        } else if (path.startsWith("META-INF/versions/" + version) && path.endsWith(".jar")) {
+        } else if (path.startsWith("META-INF/versions/" + version + '/') && path.endsWith(".jar")) {
             zop.putNextEntry(new ZipEntry(path));
             try (FileInputStream server = new FileInputStream(this.server)) {
                 ByteStreams.copy(server, zop);

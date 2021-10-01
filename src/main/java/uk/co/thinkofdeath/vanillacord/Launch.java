@@ -2,13 +2,14 @@ package uk.co.thinkofdeath.vanillacord;
 
 import com.google.common.io.Resources;
 import org.json.JSONObject;
+import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.packager.BundleEditor;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
 
 public class Launch {
 
@@ -56,37 +57,8 @@ public class Launch {
         }
 
         if (!BundleEditor.edit(in, out, version, secret)) {
-            VCClassLoader loader = new VCClassLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
+            PatchLoader loader = new PatchLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, new File(out.getParentFile(), out.getName() + ".jar"), secret);
         }
-    }
-
-    private static String sha1(File file) throws IOException, NoSuchAlgorithmException {
-        MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
-        try (InputStream input = new FileInputStream(file)) {
-            byte[] buffer = new byte[8192];
-            int len = input.read(buffer);
-
-            while (len != -1) {
-                sha1.update(buffer, 0, len);
-                len = input.read(buffer);
-            }
-
-            byte[] digest = sha1.digest();
-            StringBuilder output = new StringBuilder();
-            for (int i=0; i < digest.length; i++) {
-                output.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            return output.toString();
-        }
-    }
-
-    private static String readAll(Reader rd) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        int cp;
-        while ((cp = rd.read()) != -1) {
-            sb.append((char) cp);
-        }
-        return sb.toString();
     }
 }

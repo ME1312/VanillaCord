@@ -3,9 +3,8 @@ package uk.co.thinkofdeath.vanillacord.generator;
 import io.netty.channel.Channel;
 import io.netty.util.AttributeKey;
 import org.objectweb.asm.*;
+import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -133,14 +132,4 @@ public class BungeeHelper extends HelperVisitor {
         return useFields || !tag.startsWith("Handshake.");
     }
 
-    private static final class QuietStream extends PrintStream {
-        private QuietStream() {
-            super(new OutputStream() {
-                @Override
-                public void write(int b) throws IOException {
-                    // This is a quiet stream
-                }
-            });
-        }
-    }
 }
