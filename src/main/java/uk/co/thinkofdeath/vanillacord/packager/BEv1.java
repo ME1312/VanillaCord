@@ -3,6 +3,7 @@ package uk.co.thinkofdeath.vanillacord.packager;
 import com.google.common.io.ByteStreams;
 import uk.co.thinkofdeath.vanillacord.Launch;
 import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
+import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
 import java.io.*;
 import java.net.URL;
@@ -29,52 +30,62 @@ public class BEv1 extends BundleEditor {
     public void extract() throws Exception {
         System.out.println("Running the self-extracting server bundle");
 
-        PrintStream out = System.out;
-        if (!Boolean.getBoolean("vc.debug")) System.setOut(new PrintStream(new OutputStream() {
-            @Override
-            public void write(int b) throws IOException {
-                // This code prevents the self-extracting archive from logging verbosely
-            }
-        }));
+        if (runProcess(new ProcessBuilder(
+                System.getProperty("java.home") + File.separator + "bin" + File.separator + "java",
+                "-DbundlerRepoDir=" + out,
+                "-DbundlerMainClass=uk.co.thinkofdeath.vanillacord.packager.BundleEditor",
+                "-Dvc.debug=" + Boolean.getBoolean("vc.debug"),
+                "-cp",
+                new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
+                "uk.co.thinkofdeath.vanillacord.packager.BEv1",
+                in.toString(), out.toString(), version, (secret != null)?secret:""
+        )) == 0) {
+            update();
+        }
+    }
+    public static void main(String[] args) throws Exception {
+        if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
 
-        URLClassLoader loader = new URLClassLoader(new URL[]{in.toURI().toURL()});
-        System.setProperty("bundlerRepoDir", this.out.toString());
-        System.setProperty("bundlerMainClass", "uk.co.thinkofdeath.vanillacord.packager.BundleEditor");
-        loader.loadClass("net.minecraft.bundler.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) new String[0]);
+        PrintStream out = System.out;
+        if (!Boolean.getBoolean("vc.debug")) System.setOut(new QuietStream());
+
+        URLClassLoader loader = new URLClassLoader(new URL[]{new File(args[0]).toURI().toURL()});
+        loader.loadClass("net.minecraft.bundler.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
         System.setOut(out);
     }
 
-    @Override
-    public void edit() throws Exception {
-        File out = null, dir = new File(this.out, "versions/" + version);
+    protected void detect() {
+        File dir = new File(out, "versions/" + version);
         if (dir.isDirectory()) {
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith(".jar")) {
-                    out = file;
+                    server = file;
                     break;
                 }
             }
         }
+    }
 
-        if (out == null) {
+    @Override
+    protected void edit() throws Exception {
+        detect();
+
+        if (server == null) {
             System.out.println("Cannot locate server file, giving up");
         } else {
-            File in = new File(out.getParentFile(), out.getName() + ".tmp");
-            Files.move(out.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            File in = new File(server.getParentFile(), server.getName() + ".tmp");
+            Files.move(server.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
             PatchLoader loader = new PatchLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
-            loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, out, secret);
-            loader.close();
-            in.delete();
-
-            server = out;
-            update();
+            loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, server, secret);
         }
     }
 
     @Override
-    public void update() throws Exception {
+    protected void update() throws Exception {
+        detect();
+
         Set<String> mojangCantEvenJar = new HashSet<>();
-        File out = new File(this.out, version + ".jar");
+        File out = new File(this.out.getParentFile(), this.out.getName() + ".jar");
         if (out.exists()) out.delete();
         try (
                 ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
@@ -93,7 +104,7 @@ public class BEv1 extends BundleEditor {
     }
 
     @Override
-    public boolean update(ZipInputStream zip, ZipOutputStream zop, String path, ZipEntry entry) throws Exception {
+    protected boolean update(ZipInputStream zip, ZipOutputStream zop, String path, ZipEntry entry) throws Exception {
         if (path.equals("META-INF/versions.list")) {
             boolean space = false;
             StringBuilder edited = new StringBuilder();
@@ -126,5 +137,14 @@ public class BEv1 extends BundleEditor {
             return false;
         }
         return true;
+    }
+
+    @Override
+    protected void close() throws Exception {
+        if (!Boolean.getBoolean("vc.debug")) {
+            System.out.println("Cleaning up");
+            deleteDirectory(out);
+        }
+        super.close();
     }
 }

@@ -1,6 +1,7 @@
 package uk.co.thinkofdeath.vanillacord.library;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -35,6 +36,25 @@ public class VanillaUtil {
         }
     }
 
+    public static int runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
+        Process process = pb.start();
+        new Thread(() -> readProcess(process.getErrorStream())).start();
+        readProcess(process.getInputStream());
+        process.waitFor();
+        Thread.sleep(250);
+        return process.exitValue();
+    }
+
+    private static void readProcess(InputStream in) {
+        try {
+            BufferedReader br = new BufferedReader(new InputStreamReader(in));
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (IOException e) {}
+    }
+
     public static String readAll(Reader rd) throws IOException {
         StringBuilder sb = new StringBuilder();
         int cp;
@@ -42,5 +62,21 @@ public class VanillaUtil {
             sb.append((char) cp);
         }
         return sb.toString();
+    }
+
+    public static void deleteDirectory(File folder) {
+        File[] files = folder.listFiles();
+        if(files!=null) {
+            for(File f : files) {
+                if(f.isDirectory() && !Files.isSymbolicLink(f.toPath())) {
+                    deleteDirectory(f);
+                } else try {
+                    Files.delete(f.toPath());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        folder.delete();
     }
 }

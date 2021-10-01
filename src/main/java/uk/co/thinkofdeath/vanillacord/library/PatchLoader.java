@@ -54,8 +54,4 @@ public class PatchLoader extends ClassLoader {
             return super.loadClass(name, resolve);
         }
     }
-
-    public void close() throws IOException {
-        childClassLoader.close();
-    }
 }

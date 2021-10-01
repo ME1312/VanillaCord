@@ -131,5 +131,4 @@ public class BungeeHelper extends HelperVisitor {
     protected boolean keepField(String tag) {
         return useFields || !tag.startsWith("Handshake.");
     }
-
 }
