@@ -63,7 +63,7 @@ public class BEv1 extends BundleEditor {
     @Override
     public void update() throws Exception {
         Set<String> mojangCantEvenJar = new HashSet<>();
-        File out = new File(this.out.getParentFile(), this.out.getName() + ".jar");
+        File out = new File(this.out, version + ".jar");
         if (out.exists()) out.delete();
         try (
                 ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
