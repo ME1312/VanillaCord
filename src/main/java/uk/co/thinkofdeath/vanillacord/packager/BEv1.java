@@ -34,6 +34,7 @@ public class BEv1 extends BundleEditor {
                 System.getProperty("java.home") + File.separator + "bin" + File.separator + "java",
                 "-DbundlerRepoDir=" + out,
                 "-DbundlerMainClass=uk.co.thinkofdeath.vanillacord.packager.BundleEditor",
+                "-Dvc.launch=net.minecraft.bundler.Main",
                 "-Dvc.debug=" + Boolean.getBoolean("vc.debug"),
                 "-cp",
                 new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
@@ -44,13 +45,15 @@ public class BEv1 extends BundleEditor {
         }
     }
     public static void main(String[] args) throws Exception {
+        String main;
+        if ((main = System.getProperty("vc.launch", "")).length() == 0) throw new IllegalAccessException();
         if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
 
         PrintStream out = System.out;
         if (!Boolean.getBoolean("vc.debug")) System.setOut(new QuietStream());
 
         URLClassLoader loader = new URLClassLoader(new URL[]{new File(args[0]).toURI().toURL()});
-        loader.loadClass("net.minecraft.bundler.Main").getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
+        loader.loadClass(main).getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
         System.setOut(out);
     }
 
