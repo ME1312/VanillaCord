@@ -11,7 +11,7 @@ public class HandshakeListener extends ClassVisitor {
     private String fieldDesc;
 
     private String thisName;
-    private String handshake;
+    private boolean hooked;
 
     public HandshakeListener(ClassVisitor cv, TypeChecker typeChecker, boolean secure) {
         super(Opcodes.ASM9, cv);
@@ -53,7 +53,7 @@ public class HandshakeListener extends ClassVisitor {
                     super.visitMethodInsn(opcode, owner, name, desc, itf);
 
                     if (waitVirt && opcode == Opcodes.INVOKEVIRTUAL) {
-                        System.out.println("Hooking");
+                        hooked = true;
                         waitVirt = false;
 
                         mv.visitLabel(new Label());
@@ -78,5 +78,11 @@ public class HandshakeListener extends ClassVisitor {
 
     public String getNetworkManager() {
         return Type.getMethodType(fieldDesc).getInternalName();
+    }
+
+    public void validate() {
+        if (!secure && !hooked) {
+            throw new IllegalStateException("Hook failed");
+        }
     }
 }

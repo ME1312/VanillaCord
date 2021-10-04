@@ -91,6 +91,7 @@ public class Patcher {
                     reader.accept(hsl, 0);
                     clazz = classWriter.toByteArray();
 
+                    hsl.validate();
                     handshakePacket = hsl.getHandshake();
                     networkManager = hsl.getNetworkManager();
                 } else if (typeChecker.isLoginListener()) {
@@ -125,8 +126,9 @@ public class Patcher {
                 clazz = classWriter.toByteArray();
                 classes.put(loginListener, clazz);
 
-            // Intercept the login process
                 loginPacket = ll.getPacket() + ".class";
+
+            // Intercept the login process
                 if (secure) {
                     clazz = classes.get(loginPacket);
                     reader = new ClassReader(clazz);

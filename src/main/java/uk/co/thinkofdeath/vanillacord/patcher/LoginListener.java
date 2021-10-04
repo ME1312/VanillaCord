@@ -128,7 +128,7 @@ public class LoginListener extends ClassVisitor {
 
             private void setState(int old, int n) {
                 if (state != old) {
-                    throw new RuntimeException("Inject failed");
+                    throw new IllegalStateException("Inject failed");
                 }
                 state = n;
             }

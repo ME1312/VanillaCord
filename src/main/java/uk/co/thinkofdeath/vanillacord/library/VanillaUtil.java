@@ -38,19 +38,19 @@ public class VanillaUtil {
 
     public static int runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
         Process process = pb.start();
-        new Thread(() -> readProcess(process.getErrorStream())).start();
-        readProcess(process.getInputStream());
+        new Thread(() -> readProcess(process.getErrorStream(), System.err)).start();
+        readProcess(process.getInputStream(), System.out);
         process.waitFor();
         Thread.sleep(250);
         return process.exitValue();
     }
 
-    private static void readProcess(InputStream in) {
+    private static void readProcess(InputStream in, PrintStream out) {
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(in));
             String line;
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                out.println(line);
             }
         } catch (IOException e) {}
     }

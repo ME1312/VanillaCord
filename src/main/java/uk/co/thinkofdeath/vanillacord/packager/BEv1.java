@@ -6,6 +6,7 @@ import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
 import java.io.*;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
@@ -71,14 +72,17 @@ public class BEv1 extends BundleEditor {
     protected void edit() throws Exception {
         detect();
 
-        if (server == null) {
-            System.out.println("Cannot locate server file, giving up");
-            System.exit(1);
-        } else {
+        if (server != null) try {
             File in = new File(server.getParentFile(), server.getName() + ".tmp");
             Files.move(server.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
             PatchLoader loader = new PatchLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, server, secret);
+        } catch (InvocationTargetException e) {
+            e.printStackTrace();
+            System.exit(1);
+        } else {
+            System.out.println("Cannot locate server file, giving up");
+            System.exit(1);
         }
     }
 
