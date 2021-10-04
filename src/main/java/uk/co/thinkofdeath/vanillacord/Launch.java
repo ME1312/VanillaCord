@@ -8,6 +8,7 @@ import uk.co.thinkofdeath.vanillacord.packager.BundleEditor;
 import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
+import java.util.Locale;
 
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
 
@@ -22,7 +23,7 @@ public class Launch {
         System.out.println("VanillaCord 1.8");
         System.out.println("Searching versions");
 
-        String version = args[0].toLowerCase();
+        String version = args[0].toLowerCase(Locale.ENGLISH);
         String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
 
         File in = new File("in/" + version + ".jar");
@@ -33,7 +34,7 @@ public class Launch {
             JSONObject mcprofile = null;
             JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
             for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
-                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(version.toString())) {
+                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(version)) {
                     mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
                     break;
                 }

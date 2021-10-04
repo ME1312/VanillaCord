@@ -36,10 +36,8 @@ public class BEv1 extends BundleEditor {
                 "-DbundlerMainClass=uk.co.thinkofdeath.vanillacord.packager.BundleEditor",
                 "-Dvc.launch=net.minecraft.bundler.Main",
                 "-Dvc.debug=" + Boolean.getBoolean("vc.debug"),
-                "-cp",
-                new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
-                "uk.co.thinkofdeath.vanillacord.packager.BEv1",
-                in.toString(), out.toString(), version, (secret != null)?secret:""
+                "-cp", new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
+                "uk.co.thinkofdeath.vanillacord.packager.BEv1", in.toString(), out.toString(), version, (secret != null)?secret:""
         )) == 0) {
             update();
         }
@@ -75,6 +73,7 @@ public class BEv1 extends BundleEditor {
 
         if (server == null) {
             System.out.println("Cannot locate server file, giving up");
+            System.exit(1);
         } else {
             File in = new File(server.getParentFile(), server.getName() + ".tmp");
             Files.move(server.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -117,8 +116,8 @@ public class BEv1 extends BundleEditor {
                 if (space) edited.append('\n');
                 space = true;
 
-                String[] properties = line.split("\t");
-                if (properties[2].startsWith(version + '/') && properties[2].endsWith(".jar")) {
+                String[] properties = line.split("\t", 3);
+                if (properties[1].equals(version)) {
                     edited.append(sha256(server));
                     edited.append('\t');
                     edited.append(properties[1]);
@@ -144,10 +143,7 @@ public class BEv1 extends BundleEditor {
 
     @Override
     protected void close() throws Exception {
-        if (!Boolean.getBoolean("vc.debug")) {
-            System.out.println("Cleaning up");
-            deleteDirectory(out);
-        }
+        if (!Boolean.getBoolean("vc.debug")) deleteDirectory(out);
         super.close();
     }
 }
