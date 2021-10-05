@@ -94,7 +94,7 @@ public class Patcher {
                     }
                 }
 
-                System.out.println("Applying customized patches");
+                System.out.println("Patching classes");
 
             // Intercept the handshake
                 byte[] clazz = classes.get(handshakeListener);
