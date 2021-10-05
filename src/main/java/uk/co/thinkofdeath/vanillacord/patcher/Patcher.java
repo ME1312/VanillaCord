@@ -26,12 +26,7 @@ public class Patcher {
             return;
         }
 
-        File out = new File(args[1]);
-        if (!out.getParentFile().exists() && !out.getParentFile().mkdirs()) {
-            System.out.println("Cannot use output directory: " + out.getParentFile().toString());
-        }
-
-        patch(in, out, (args.length == 3 && args[2].length() > 0)?args[2]:null);
+        patch(in, new File(args[1]), (args.length == 3 && args[2].length() > 0)?args[2]:null);
     }
 
     public static void patch(File in, File out, String secret) throws Exception {
@@ -46,28 +41,7 @@ public class Patcher {
             LinkedHashMap<String, byte[]> classes = new LinkedHashMap<>();
 
             if (secure) System.out.println("Requested modern IP forwarding");
-            System.out.println("Loading");
-
-            // So Mojang managed to include the same file
-            // multiple times in the server jar. This
-            // (not being valid) causes java to (correctly)
-            // throw an exception so we need to track what
-            // files have been added to a jar so that we
-            // don't add them twice
-            Set<String> mojangCantEvenJar = new HashSet<>();
-
-            ZipEntry entry;
-            while ((entry = zip.getNextEntry()) != null) {
-                if (!entry.getName().endsWith(".class")) {
-                    if (mojangCantEvenJar.add(entry.getName())) {
-                        zop.putNextEntry(entry);
-                        ByteStreams.copy(zip, zop);
-                    }
-                    continue;
-                }
-                byte[] clazz = ByteStreams.toByteArray(zip);
-                classes.put(entry.getName(), clazz);
-            }
+            System.out.println("Loading server bytecode");
 
             String handshakePacket = null;
             String loginListener = null;
@@ -75,38 +49,66 @@ public class Patcher {
             String serverQuery = null;
             String clientQuery = null;
             String networkManager = null;
+            {
+                String handshakeListener = null;
+                TypeChecker handshakeType = null;
 
-            for (Map.Entry<String, byte[]> e : new HashMap<>(classes).entrySet()) {
-                byte[] clazz = e.getValue();
-                ClassReader reader = new ClassReader(clazz);
-                TypeChecker typeChecker = new TypeChecker(secure);
-                reader.accept(typeChecker, 0);
+                // So Mojang managed to include the same file
+                // multiple times in the server jar. This
+                // (not being valid) causes java to (correctly)
+                // throw an exception so we need to track what
+                // files have been added to a jar so that we
+                // don't add them twice
+                Set<String> mojangCantEvenJar = new HashSet<>();
 
-                if (typeChecker.isHandshakeListener()) {
-                    System.out.println("Found the handshake listener in " + e.getKey());
+                ZipEntry entry;
+                while ((entry = zip.getNextEntry()) != null) {
+                    if (mojangCantEvenJar.add(entry.getName())) {
+                        if (!entry.getName().endsWith(".class")) {
+                            zop.putNextEntry(entry);
+                            ByteStreams.copy(zip, zop);
+                            continue;
+                        }
 
-                    reader = new ClassReader(clazz);
-                    ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-                    HandshakeListener hsl = new HandshakeListener(classWriter, typeChecker, secure);
-                    reader.accept(hsl, 0);
-                    clazz = classWriter.toByteArray();
+                        String name = entry.getName();
+                        byte[] clazz = ByteStreams.toByteArray(zip);
+                        ClassReader reader = new ClassReader(clazz);
+                        TypeChecker typeChecker = new TypeChecker(secure);
+                        reader.accept(typeChecker, 0);
+                        classes.put(name, clazz);
 
-                    hsl.validate();
-                    handshakePacket = hsl.getHandshake();
-                    networkManager = hsl.getNetworkManager();
-                } else if (typeChecker.isLoginListener()) {
-                    System.out.println("Found the login listener in " + e.getKey());
-                    loginListener = e.getKey();
-                } else if (typeChecker.isServerQuery()) {
-                    System.out.println("Found the extended login request in " + e.getKey());
-                    serverQuery = e.getKey();
-                } else if (typeChecker.isClientQuery()) {
-                    System.out.println("Found the extended login response in " + e.getKey());
-                    clientQuery = e.getKey();
+                        if (typeChecker.isHandshakeListener()) {
+                            System.out.println("Found the handshake listener in " + name);
+                            handshakeListener = name;
+                            handshakeType = typeChecker;
+                        } else if (typeChecker.isLoginListener()) {
+                            System.out.println("Found the login listener in " + name);
+                            loginListener = name;
+                        } else if (typeChecker.isServerQuery()) {
+                            System.out.println("Found the extended login request in " + name);
+                            serverQuery = name;
+                        } else if (typeChecker.isClientQuery()) {
+                            System.out.println("Found the extended login response in " + name);
+                            clientQuery = name;
+                        }
+                    }
                 }
-                classes.put(e.getKey(), clazz);
-            }
 
+                System.out.println("Applying customized patches");
+
+            // Intercept the handshake
+                byte[] clazz = classes.get(handshakeListener);
+                ClassReader reader = new ClassReader(clazz);
+                ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
+                HandshakeListener hsl = new HandshakeListener(classWriter, handshakeType, secure);
+                reader.accept(hsl, 0);
+                clazz = classWriter.toByteArray();
+                classes.put(handshakeListener, clazz);
+
+                hsl.validate();
+                handshakePacket = hsl.getHandshake();
+                networkManager = hsl.getNetworkManager();
+            }
             // Increase the hostname field size
             if (!secure) {
                 byte[] clazz = classes.get(handshakePacket + ".class");
@@ -173,7 +175,7 @@ public class Patcher {
 
             }
 
-            System.out.println("Exporting patched jarfile");
+            System.out.println("Exporting server jar");
             for (Map.Entry<String, byte[]> e : classes.entrySet()) {
                 zop.putNextEntry(new ZipEntry(e.getKey()));
                 zop.write(e.getValue());
