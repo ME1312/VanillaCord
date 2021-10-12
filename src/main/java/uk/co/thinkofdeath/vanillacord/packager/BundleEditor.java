@@ -1,11 +1,17 @@
 package uk.co.thinkofdeath.vanillacord.packager;
 
+import com.google.common.io.ByteStreams;
+
 import java.io.*;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.deleteDirectory;
 
 public abstract class BundleEditor {
     private static BundleEditor current;
@@ -20,7 +26,7 @@ public abstract class BundleEditor {
     }
 
     public static boolean edit(File in, File out, String version, String secret) throws Exception {
-        if (current != null) return true;
+        if (current != null) throw new IllegalStateException("Edit already in progress!");
 
         detect(in, out, version, secret);
         if (current != null) {
@@ -31,9 +37,7 @@ public abstract class BundleEditor {
         }
     }
 
-    private static void detect(File in, File out, String version, String secret) throws Exception{
-        if (current != null) throw new IllegalStateException();
-
+    private static void detect(File in, File out, String version, String secret) throws Exception {
         JarFile jar = new JarFile(in);
         Attributes ja = jar.getManifest().getMainAttributes();
         jar.close();
@@ -51,12 +55,32 @@ public abstract class BundleEditor {
         current.edit();
     }
 
-    // Abstract methods
     protected abstract void extract() throws Exception;
     protected abstract void edit() throws Exception;
-    protected abstract void update() throws Exception;
     protected abstract boolean update(ZipInputStream zip, ZipOutputStream stream, String path, ZipEntry entry) throws Exception;
+
+    protected void update() throws Exception {
+        Set<String> mojangCantEvenJar = new HashSet<>();
+        File out = new File(this.out.getParentFile(), this.out.getName() + ".jar");
+        if (out.exists()) out.delete();
+        try (
+                ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
+                ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out, false));
+        ) {
+            System.out.println("Repackaging server bundle");
+            for (ZipEntry entry; (entry = zip.getNextEntry()) != null; ) {
+                if (mojangCantEvenJar.add(entry.getName()) && !update(zip, zop, entry.getName(), entry)) {
+                    zop.putNextEntry(new ZipEntry(entry.getName()));
+                    ByteStreams.copy(zip, zop);
+                }
+            }
+        }
+
+        close();
+    }
+
     protected void close() throws Exception {
+        if (out.isDirectory() && !Boolean.getBoolean("vc.debug")) deleteDirectory(out);
         if (current == this) current = null;
     }
 }

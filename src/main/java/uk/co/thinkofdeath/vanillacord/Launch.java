@@ -10,7 +10,8 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
-import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.readAll;
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.sha1;
 
 public class Launch {
 

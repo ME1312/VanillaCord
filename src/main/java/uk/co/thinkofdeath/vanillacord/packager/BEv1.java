@@ -12,8 +12,6 @@ import java.net.URLClassLoader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -40,6 +38,7 @@ public class BEv1 extends BundleEditor {
                 "-cp", new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
                 "uk.co.thinkofdeath.vanillacord.packager.BEv1", in.toString(), out.toString(), version, (secret != null)?secret:""
         )) == 0) {
+            detect();
             update();
         }
     }
@@ -87,29 +86,6 @@ public class BEv1 extends BundleEditor {
     }
 
     @Override
-    protected void update() throws Exception {
-        detect();
-
-        Set<String> mojangCantEvenJar = new HashSet<>();
-        File out = new File(this.out.getParentFile(), this.out.getName() + ".jar");
-        if (out.exists()) out.delete();
-        try (
-                ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
-                ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out, false));
-        ) {
-            System.out.println("Repackaging server bundle");
-            for (ZipEntry entry; (entry = zip.getNextEntry()) != null; ) {
-                if (mojangCantEvenJar.add(entry.getName()) && !update(zip, zop, entry.getName(), entry)) {
-                    zop.putNextEntry(new ZipEntry(entry.getName()));
-                    ByteStreams.copy(zip, zop);
-                }
-            }
-        }
-
-        close();
-    }
-
-    @Override
     protected boolean update(ZipInputStream zip, ZipOutputStream zop, String path, ZipEntry entry) throws Exception {
         if (path.equals("META-INF/versions.list")) {
             boolean space = false;
@@ -143,11 +119,5 @@ public class BEv1 extends BundleEditor {
             return false;
         }
         return true;
-    }
-
-    @Override
-    protected void close() throws Exception {
-        if (!Boolean.getBoolean("vc.debug")) deleteDirectory(out);
-        super.close();
     }
 }
