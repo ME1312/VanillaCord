@@ -1,7 +1,6 @@
 package uk.co.thinkofdeath.vanillacord.packager;
 
 import com.google.common.io.ByteStreams;
-import uk.co.thinkofdeath.vanillacord.Launch;
 import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
@@ -35,8 +34,8 @@ public class BEv1 extends BundleEditor {
                 "-DbundlerMainClass=uk.co.thinkofdeath.vanillacord.packager.BundleEditor",
                 "-Dvc.launch=net.minecraft.bundler.Main",
                 "-Dvc.debug=" + Boolean.getBoolean("vc.debug"),
-                "-cp", new File(Launch.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
-                "uk.co.thinkofdeath.vanillacord.packager.BEv1", in.toString(), out.toString(), version, (secret != null)?secret:""
+                "-cp", new File(BundleEditor.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
+                getClass().getCanonicalName(), in.toString(), out.toString(), version, (secret != null)?secret:""
         )) == 0) {
             detect();
             update();
@@ -74,7 +73,7 @@ public class BEv1 extends BundleEditor {
         if (server != null) try {
             File in = new File(server.getParentFile(), server.getName() + ".tmp");
             Files.move(server.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            PatchLoader loader = new PatchLoader(new URL[]{Launch.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
+            PatchLoader loader = new PatchLoader(new URL[]{BundleEditor.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, server, secret);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
