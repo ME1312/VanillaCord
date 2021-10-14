@@ -7,10 +7,15 @@ import uk.co.thinkofdeath.vanillacord.generator.BungeeHelper;
 import uk.co.thinkofdeath.vanillacord.generator.VelocityHelper;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.readAll;
 
 public class Patcher {
 
@@ -63,10 +68,19 @@ public class Patcher {
 
                 ZipEntry entry;
                 while ((entry = zip.getNextEntry()) != null) {
-                    if (mojangCantEvenJar.add(entry.getName())) {
+                    String path = entry.getName();
+                    if (mojangCantEvenJar.add(path)) {
                         if (!entry.getName().endsWith(".class")) {
-                            zop.putNextEntry(entry);
-                            ByteStreams.copy(zip, zop);
+                            if (path.equals("META-INF/MANIFEST.MF")) {
+                                zop.putNextEntry(new ZipEntry(path));
+                                manifest(zip, zop);
+                            } else if (path.startsWith("META-INF/") && path.endsWith(".SF")) {
+                                // This file type is excluded from the patched jar file
+                                // so that the modified code can be allowed to load
+                            } else {
+                                zop.putNextEntry(entry);
+                                ByteStreams.copy(zip, zop);
+                            }
                             continue;
                         }
 
@@ -186,5 +200,21 @@ public class Patcher {
             ByteStreams.copy(clazz, zop);
             clazz.close();
         }
+    }
+
+    public static void manifest(InputStream in, OutputStream out) throws IOException {
+        StringBuilder edited = new StringBuilder();
+        String[] original = readAll(new InputStreamReader(in)).replace("\r\n", "\n").replace("\n ", "").split("\n");
+        Pattern pattern = Pattern.compile("^(?:Manifest-Version|Main-Class):.*$");
+        for (String property : original) {
+            Matcher m = pattern.matcher(property);
+            if (m.find()) {
+                edited.append(m.group());
+                edited.append('\n');
+            }
+        }
+        edited.append("Built-By: VanillaCord");
+        edited.append('\n');
+        out.write(edited.toString().getBytes(StandardCharsets.UTF_8));
     }
 }
