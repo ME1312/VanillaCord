@@ -7,7 +7,6 @@ import uk.co.thinkofdeath.vanillacord.generator.BungeeHelper;
 import uk.co.thinkofdeath.vanillacord.generator.VelocityHelper;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -15,6 +14,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.readAll;
 
 public class Patcher {
@@ -215,6 +215,6 @@ public class Patcher {
         }
         edited.append("Built-By: VanillaCord");
         edited.append('\n');
-        out.write(edited.toString().getBytes(StandardCharsets.UTF_8));
+        out.write(edited.toString().getBytes(UTF_8));
     }
 }

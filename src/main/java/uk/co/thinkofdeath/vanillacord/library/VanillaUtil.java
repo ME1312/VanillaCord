@@ -29,7 +29,7 @@ public class VanillaUtil {
 
             byte[] digest = sha1.digest();
             StringBuilder output = new StringBuilder();
-            for (int i=0; i < digest.length; i++) {
+            for (int i = 0; i < digest.length; ++i) {
                 output.append(Integer.toString((digest[i] & 0xff) + 0x100, 16).substring(1));
             }
             return output.toString();

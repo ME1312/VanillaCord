@@ -8,13 +8,13 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
 
 public class BEv1 extends BundleEditor {
@@ -108,7 +108,7 @@ public class BEv1 extends BundleEditor {
             }
 
             zop.putNextEntry(new ZipEntry(path));
-            zop.write(edited.toString().getBytes(StandardCharsets.UTF_8));
+            zop.write(edited.toString().getBytes(UTF_8));
         } else if (path.startsWith("META-INF/versions/" + version + '/') && path.endsWith(".jar")) {
             zop.putNextEntry(new ZipEntry(path));
             try (FileInputStream server = new FileInputStream(this.server)) {

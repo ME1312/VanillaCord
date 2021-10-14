@@ -1,15 +1,16 @@
 package uk.co.thinkofdeath.vanillacord;
 
 import com.google.common.io.Resources;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.packager.BundleEditor;
 
 import java.io.*;
 import java.net.URL;
-import java.nio.charset.Charset;
 import java.util.Locale;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.readAll;
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.sha1;
 
@@ -32,24 +33,29 @@ public class Launch {
         in.getParentFile().mkdirs();
 
         if (!in.exists()) {
-            JSONObject mcprofile = null;
-            JSONObject mcversionmanifest = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), Charset.forName("UTF-8")))));
-            for (int i = 0; i < mcversionmanifest.getJSONArray("versions").length(); i++) {
-                if (mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("id").equals(version)) {
-                    mcprofile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(mcversionmanifest.getJSONArray("versions").getJSONObject(i).getString("url")).openStream(), Charset.forName("UTF-8")))));
+            JSONObject profile = null;
+            JSONArray profiles = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), UTF_8)))).getJSONArray("versions");
+            for (int i = 0; i < profiles.length(); ++i) {
+                if (profiles.getJSONObject(i).getString("id").equals(version)) {
+                    profile = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL(profiles.getJSONObject(i).getString("url")).openStream(), UTF_8))));
                     break;
                 }
-            } if (mcprofile == null) throw new IllegalArgumentException("Could not find version metadata for " + version);
+            } if (profile == null) {
+                throw new IllegalArgumentException("Could not find version metadata for " + version);
+            }
 
             System.out.println("Downloading Minecraft Server " + version);
             try (FileOutputStream fin = new FileOutputStream(in)) {
-                Resources.copy(new URL(mcprofile.getJSONObject("downloads").getJSONObject("server").getString("url")), fin);
+                JSONObject download = profile.getJSONObject("downloads").getJSONObject("server");
+                Resources.copy(new URL(download.getString("url")), fin);
 
-                if (in.length() != mcprofile.getJSONObject("downloads").getJSONObject("server").getLong("size"))
-                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: File size: " + in.length() + "!=" + mcprofile.getJSONObject("downloads").getJSONObject("server").getLong("size"));
+                if (in.length() != download.getLong("size"))
+                    throw new IllegalStateException("Downloaded file is not as expected: File size: " + in.length() + "!=" + download.getLong("size"));
+
                 String sha1 = sha1(in);
-                if (!mcprofile.getJSONObject("downloads").getJSONObject("server").getString("sha1").equals(sha1))
-                    throw new IllegalStateException("Downloaded file does not match the profile's expectations: SHA-1 checksum: " + sha1 + "!=" + mcprofile.getJSONObject("downloads").getJSONObject("server").getString("sha1"));
+                if (!download.getString("sha1").equals(sha1))
+                    throw new IllegalStateException("Downloaded file is not as expected: SHA-1 checksum: " + sha1 + "!=" + download.getString("sha1"));
+
             } catch (Throwable e) {
                 in.delete();
                 throw e;
