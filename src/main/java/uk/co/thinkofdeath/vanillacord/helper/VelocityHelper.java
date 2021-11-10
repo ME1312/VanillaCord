@@ -23,30 +23,23 @@ import static uk.co.thinkofdeath.vanillacord.helper.BungeeHelper.*;
 public class VelocityHelper {
 
     private static final Object NAMESPACE = NamespacedKey.construct("velocity", "player_info");
-    static final AttributeKey<Integer> TRANSACTION_ID_KEY = AttributeKey.valueOf("-vch-transaction");
+    static final AttributeKey<Object> TRANSACTION_LOCK_KEY = AttributeKey.valueOf("-vch-transaction");
     static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
-
-    private static byte[] seecret = null;
-    private static int lastTID = -1;
 
     public static void initializeTransaction(Object networkManager, Object intercepted) {
         try {
             Channel channel = (Channel) NetworkManager.channel.get(networkManager);
-            if (channel.attr(TRANSACTION_ID_KEY).get() != null) {
+            if (channel.attr(TRANSACTION_LOCK_KEY).get() != null) {
                 throw new IllegalStateException("Unexpected login request");
             }
 
-            // Generate an id
-            int id;
-            synchronized (NAMESPACE) {
-                if (lastTID == Integer.MAX_VALUE) lastTID = Integer.MIN_VALUE;
-                id = ++lastTID;
-            }
-            channel.attr(TRANSACTION_ID_KEY).set(id);
+            // Prepare to receive
+            channel.attr(TRANSACTION_LOCK_KEY).set(NAMESPACE);
             channel.attr(INTERCEPTED_PACKET_KEY).set(intercepted);
 
+
             // Send the packet
-            LoginRequestPacket.send(networkManager, id, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
+            LoginRequestPacket.send(networkManager, 0, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -61,12 +54,12 @@ public class VelocityHelper {
                 throw new IllegalStateException("Unexpected login response");
             }
 
-            // Check the packet metadata
+            // Check the metadata
             int id = LoginResponsePacket.getTransactionID(response);
             ByteBuf data = LoginResponsePacket.getData(response);
 
-            if (id != channel.attr(TRANSACTION_ID_KEY).get())
-                throw QuietException.notify("Invalid transaction ID: " + id);
+            if (id != 0)
+                throw QuietException.notify("Unknown transaction ID: " + id);
             if (data == null)
                 throw QuietException.notify("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
 
@@ -107,6 +100,7 @@ public class VelocityHelper {
         }
     }
 
+    private static byte[] seecret = null;
     private static byte[] getSecret(String def) throws IOException {
         if (seecret == null) {
             File config = new File("seecret.txt");
