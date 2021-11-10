@@ -27,7 +27,7 @@ public class VelocityHelper {
     static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
 
     private static byte[] seecret = null;
-    private static int lastTID = Integer.MIN_VALUE;
+    private static int lastTID = -1;
 
     public static void initializeTransaction(Object networkManager, Object intercepted) {
         try {
@@ -61,46 +61,43 @@ public class VelocityHelper {
                 throw new IllegalStateException("Unexpected login response");
             }
 
-            // Validate the previously generated id
+            // Check the packet metadata
             int id = LoginResponsePacket.getTransactionID(response);
             ByteBuf data = LoginResponsePacket.getData(response);
 
-            if (id != channel.attr(TRANSACTION_ID_KEY).get()) {
+            if (id != channel.attr(TRANSACTION_ID_KEY).get())
                 throw QuietException.notify("Invalid transaction ID: " + id);
-            } if (data == null) {
+            if (data == null)
                 throw QuietException.notify("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
-            }
 
 
-            // Validate the signature on the data
+            // Validate the data signature
             {
-                byte[] received = new byte[32];
-                byte[] raw = new byte[data.readableBytes() - received.length];
+                byte[] signature = new byte[32];
+                data.readBytes(signature);
 
-                data.readBytes(received);
-                data.copy(received.length, raw.length).readBytes(raw);
+                byte[] raw = new byte[data.readableBytes()];
+                data.readBytes(raw).readerIndex(signature.length);
                 Mac mac = Mac.getInstance("HmacSHA256");
                 mac.init(new SecretKeySpec(getSecret(secret), mac.getAlgorithm()));
                 mac.update(raw);
-                byte[] calculated = mac.doFinal();
-                if (!Arrays.equals(calculated, received)) {
+                if (!Arrays.equals(signature, mac.doFinal()))
                     throw QuietException.notify("Received invalid IP forwarding data. Did you use the right forwarding secret?");
-                }
             }
 
+            // Retrieve IP forwarding data
             readVarInt(data); // we don't do anything with the protocol version at this time
 
-            // Retrieve IP forwarding data
             NetworkManager.socket.set(networkManager, new InetSocketAddress(readString(data), ((InetSocketAddress) NetworkManager.socket.get(networkManager)).getPort()));
             channel.attr(UUID_KEY).set(new UUID(data.readLong(), data.readLong()));
 
             readString(data); // we don't do anything with the username field
 
             Property[] properties = new Property[readVarInt(data)];
+            channel.attr(PROPERTIES_KEY).set(properties);
             for (int i = 0; i < properties.length; ++i) {
                 properties[i] = new Property(readString(data), readString(data), (data.readBoolean())? readString(data) : null);
             }
-            channel.attr(PROPERTIES_KEY).set(properties);
 
             // Continue login flow
             LoginListener.handle(loginManager, intercepted);
@@ -137,7 +134,7 @@ public class VelocityHelper {
         return seecret;
     }
 
-    private static String readString(ByteBuf buf) {
+    static String readString(ByteBuf buf) {
         int len = readVarInt(buf);
         if (len > Short.MAX_VALUE * 4) {
             throw new RuntimeException("String is too long");
@@ -154,7 +151,7 @@ public class VelocityHelper {
         return s;
     }
 
-    private static int readVarInt(ByteBuf input) {
+    static int readVarInt(ByteBuf input) {
         int out = 0;
         int bytes = 0;
         byte in;
