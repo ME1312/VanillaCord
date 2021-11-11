@@ -18,7 +18,8 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.*;
 
 public class BEv1 extends BundleEditor {
-    protected File server;
+    protected String serverFolder = version;
+    protected File serverFile;
 
     protected BEv1(File in, File out, String version, String secret) {
         super(in, out, version, secret);
@@ -56,10 +57,23 @@ public class BEv1 extends BundleEditor {
 
     protected void detect() {
         File dir = new File(out, "versions/" + version);
-        if (dir.isDirectory()) {
+        boolean found = dir.isDirectory();
+
+        if (!found && (dir = dir.getParentFile()).isDirectory()) {
+            for (File folder : dir.listFiles()) {
+                if (folder.isDirectory()) {
+                    found = true;
+                    dir = folder;
+                    serverFolder = folder.getName();
+                    break;
+                }
+            }
+        }
+
+        if (found) {
             for (File file : dir.listFiles()) {
                 if (file.getName().endsWith(".jar")) {
-                    server = file;
+                    serverFile = file;
                     break;
                 }
             }
@@ -70,11 +84,11 @@ public class BEv1 extends BundleEditor {
     protected void edit() throws Exception {
         detect();
 
-        if (server != null) try {
-            File in = new File(server.getParentFile(), server.getName() + ".tmp");
-            Files.move(server.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        if (serverFile != null) try {
+            File in = new File(serverFile.getParentFile(), serverFile.getName() + ".tmp");
+            Files.move(serverFile.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
             PatchLoader loader = new PatchLoader(new URL[]{BundleEditor.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
-            loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, server, secret);
+            loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, serverFile, secret);
         } catch (InvocationTargetException e) {
             e.printStackTrace();
             System.exit(1);
@@ -96,8 +110,8 @@ public class BEv1 extends BundleEditor {
                 space = true;
 
                 String[] properties = line.split("\t", 3);
-                if (properties[1].equals(version)) {
-                    edited.append(sha256(server));
+                if (properties[1].equals(serverFolder)) {
+                    edited.append(sha256(serverFile));
                     edited.append('\t');
                     edited.append(properties[1]);
                     edited.append('\t');
@@ -109,9 +123,9 @@ public class BEv1 extends BundleEditor {
 
             zop.putNextEntry(new ZipEntry(path));
             zop.write(edited.toString().getBytes(UTF_8));
-        } else if (path.startsWith("META-INF/versions/" + version + '/') && path.endsWith(".jar")) {
+        } else if (path.startsWith("META-INF/versions/" + serverFolder + '/') && path.endsWith(".jar")) {
             zop.putNextEntry(new ZipEntry(path));
-            try (FileInputStream server = new FileInputStream(this.server)) {
+            try (FileInputStream server = new FileInputStream(serverFile)) {
                 ByteStreams.copy(server, zop);
             }
         } else {
