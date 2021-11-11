@@ -55,26 +55,26 @@ public class BEv1 extends BundleEditor {
         System.setOut(out);
     }
 
+    @SuppressWarnings("ConstantConditions")
     protected void detect() {
-        File dir = new File(out, "versions/" + version);
-        boolean found = dir.isDirectory();
-
-        if (!found && (dir = dir.getParentFile()).isDirectory()) {
-            for (File folder : dir.listFiles()) {
-                if (folder.isDirectory()) {
-                    found = true;
-                    dir = folder;
-                    serverFolder = folder.getName();
-                    break;
+        File top = new File(out, "versions/" + version);
+        if (top.isDirectory()) {
+            for (File file : top.listFiles()) {
+                if (file.isFile() && !file.isHidden() && file.getName().endsWith(".jar")) {
+                    serverFile = file;
+                    return;
                 }
             }
-        }
-
-        if (found) {
-            for (File file : dir.listFiles()) {
-                if (file.getName().endsWith(".jar")) {
-                    serverFile = file;
-                    break;
+        } else if ((top = top.getParentFile()).isDirectory()) {
+            for (File folder : top.listFiles()) {
+                if (folder.isDirectory() && !folder.isHidden()) {
+                    for (File file : folder.listFiles()) {
+                        if (file.isFile() && !file.isHidden() && file.getName().endsWith(".jar")) {
+                            serverFolder = folder.getName();
+                            serverFile = file;
+                            return;
+                        }
+                    }
                 }
             }
         }
