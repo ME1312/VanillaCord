@@ -21,18 +21,17 @@ public class Launch {
             System.out.println("Args: <version> [secret]");
             System.exit(1);
         }
-
-        System.out.println("VanillaCord 1.8");
-        System.out.println("Searching versions");
-
-        String version = args[0].toLowerCase(Locale.ENGLISH);
-        String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
-
-        File in = new File("in/" + version + ".jar");
-        File out = new File("out/" + version + '-' + ((secret != null)?"velocity":"bungee"));
-        in.getParentFile().mkdirs();
-
         try {
+            System.out.println("VanillaCord 1.8");
+            System.out.println("Searching versions");
+
+            String version = args[0].toLowerCase(Locale.ENGLISH);
+            String secret = (args.length == 2 && args[1].length() > 0)?args[1]:null;
+
+            File in = new File("in/" + version + ".jar");
+            File out = new File("out/" + version + '-' + ((secret != null)?"velocity":"bungee"));
+            in.getParentFile().mkdirs();
+
             if (!in.exists()) {
                 JSONObject profile = null;
                 JSONArray profiles = new JSONObject(readAll(new BufferedReader(new InputStreamReader(new URL("https://launchermeta.mojang.com/mc/game/version_manifest.json").openStream(), UTF_8)))).getJSONArray("versions");
@@ -52,11 +51,11 @@ public class Launch {
                     Resources.copy(new URL(download.getString("url")), fin);
 
                     if (in.length() != download.getLong("size"))
-                        throw new IllegalStateException("Downloaded file is not as expected: File size: " + in.length() + "!=" + download.getLong("size"));
+                        throw new IllegalStateException("Downloaded file is not as expected: File size: " + in.length() + " != " + download.getLong("size"));
 
                     String sha1 = sha1(in);
                     if (!download.getString("sha1").equals(sha1))
-                        throw new IllegalStateException("Downloaded file is not as expected: SHA-1 checksum: " + sha1 + "!=" + download.getString("sha1"));
+                        throw new IllegalStateException("Downloaded file is not as expected: SHA-1 checksum: " + sha1 + " != " + download.getString("sha1"));
 
                 } catch (Throwable e) {
                     in.delete();

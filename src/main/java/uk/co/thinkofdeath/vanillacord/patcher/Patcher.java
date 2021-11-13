@@ -19,19 +19,23 @@ import static uk.co.thinkofdeath.vanillacord.library.VanillaUtil.readAll;
 
 public class Patcher {
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args) {
         if (args.length != 2 && args.length != 3) {
             System.out.println("Args: <input> <output> [secret]");
             System.exit(1);
         }
+        try {
+            File in = new File(args[0]);
+            if (!in.isFile()) {
+                System.err.println("Cannot find input file: " + args[0]);
+                System.exit(1);
+            }
 
-        File in = new File(args[0]);
-        if (!in.isFile()) {
-            System.err.println("Cannot find input file: " + args[0]);
+            patch(in, new File(args[1]), (args.length == 3 && args[2].length() > 0)? args[2] : null);
+        } catch (Throwable e) {
+            e.printStackTrace();
             System.exit(1);
         }
-
-        patch(in, new File(args[1]), (args.length == 3 && args[2].length() > 0)?args[2]:null);
     }
 
     public static void patch(File in, File out, String secret) throws Exception {
