@@ -22,13 +22,13 @@ public class Patcher {
     public static void main(String[] args) throws Exception {
         if (args.length != 2 && args.length != 3) {
             System.out.println("Args: <input> <output> [secret]");
-            return;
+            System.exit(1);
         }
 
         File in = new File(args[0]);
         if (!in.isFile()) {
-            System.out.println("Cannot find input file: " + args[0]);
-            return;
+            System.err.println("Cannot find input file: " + args[0]);
+            System.exit(1);
         }
 
         patch(in, new File(args[1]), (args.length == 3 && args[2].length() > 0)?args[2]:null);
@@ -74,10 +74,7 @@ public class Patcher {
                             if (path.equals("META-INF/MANIFEST.MF")) {
                                 zop.putNextEntry(new ZipEntry(path));
                                 manifest(zip, zop);
-                            } else if (path.startsWith("META-INF/") && path.endsWith(".SF")) {
-                                // This file type is excluded from the patched jar file
-                                // so that the modified code can be allowed to load
-                            } else {
+                            } else if (!(path.startsWith("META-INF/") && path.endsWith(".SF"))) {
                                 zop.putNextEntry(entry);
                                 ByteStreams.copy(zip, zop);
                             }

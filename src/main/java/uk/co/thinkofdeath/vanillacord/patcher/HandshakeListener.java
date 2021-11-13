@@ -17,6 +17,7 @@ public class HandshakeListener extends ClassVisitor {
         super(Opcodes.ASM9, cv);
         this.typeChecker = typeChecker;
         this.secure = secure;
+        this.hooked = secure;
     }
 
     @Override
@@ -81,7 +82,7 @@ public class HandshakeListener extends ClassVisitor {
     }
 
     public void validate() {
-        if (!secure && !hooked) {
+        if (!hooked) {
             throw new IllegalStateException("Hook failed");
         }
     }

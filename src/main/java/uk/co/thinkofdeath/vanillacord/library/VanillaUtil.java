@@ -36,13 +36,14 @@ public class VanillaUtil {
         }
     }
 
-    public static int runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
+    public static void runProcess(ProcessBuilder pb) throws IOException, InterruptedException {
         Process process = pb.start();
         new Thread(() -> readProcess(process.getErrorStream(), System.err)).start();
         readProcess(process.getInputStream(), System.out);
         process.waitFor();
         Thread.sleep(250);
-        return process.exitValue();
+        int code = process.exitValue();
+        if (code != 0) System.exit(code);
     }
 
     private static void readProcess(InputStream in, PrintStream out) {

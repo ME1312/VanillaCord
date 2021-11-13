@@ -5,7 +5,6 @@ import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;
@@ -29,7 +28,7 @@ public class BEv1 extends BundleEditor {
     public void extract() throws Exception {
         System.out.println("Running the self-extracting server bundle");
 
-        if (runProcess(new ProcessBuilder(
+        runProcess(new ProcessBuilder(
                 System.getProperty("java.home") + File.separator + "bin" + File.separator + "java",
                 "-DbundlerRepoDir=" + out,
                 "-DbundlerMainClass=uk.co.thinkofdeath.vanillacord.packager.BundleEditor",
@@ -37,22 +36,26 @@ public class BEv1 extends BundleEditor {
                 "-Dvc.debug=" + Boolean.getBoolean("vc.debug"),
                 "-cp", new File(BundleEditor.class.getProtectionDomain().getCodeSource().getLocation().toURI()).toString(),
                 getClass().getCanonicalName(), in.toString(), out.toString(), version, (secret != null)?secret:""
-        )) == 0) {
-            detect();
-            update();
-        }
+        ));
+        detect();
+        update();
     }
-    public static void main(String[] args) throws Exception {
-        String main;
-        if ((main = System.getProperty("vc.launch", "")).length() == 0) throw new IllegalAccessException();
-        if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
+    public static void main(String[] args) {
+        try {
+            String main;
+            if ((main = System.getProperty("vc.launch", "")).length() == 0) throw new IllegalAccessException();
+            if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
 
-        PrintStream out = System.out;
-        if (!Boolean.getBoolean("vc.debug")) System.setOut(new QuietStream());
+            PrintStream out = System.out;
+            if (!Boolean.getBoolean("vc.debug")) System.setOut(new QuietStream());
 
-        URLClassLoader loader = new URLClassLoader(new URL[]{new File(args[0]).toURI().toURL()});
-        loader.loadClass(main).getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
-        System.setOut(out);
+            URLClassLoader loader = new URLClassLoader(new URL[]{new File(args[0]).toURI().toURL()});
+            loader.loadClass(main).getDeclaredMethod("main", String[].class).invoke(null, (Object) args);
+            System.setOut(out);
+        } catch (Throwable e) {
+            e.printStackTrace();
+            System.exit(1);
+        }
     }
 
     @SuppressWarnings("ConstantConditions")
@@ -84,17 +87,15 @@ public class BEv1 extends BundleEditor {
     protected void edit() throws Exception {
         detect();
 
-        if (serverFile != null) try {
+        if (serverFile != null) {
             File in = new File(serverFile.getParentFile(), serverFile.getName() + ".tmp");
             Files.move(serverFile.toPath(), in.toPath(), StandardCopyOption.REPLACE_EXISTING);
             PatchLoader loader = new PatchLoader(new URL[]{BundleEditor.class.getProtectionDomain().getCodeSource().getLocation(), in.toURI().toURL()});
             loader.loadClass("uk.co.thinkofdeath.vanillacord.patcher.Patcher").getDeclaredMethod("patch", File.class, File.class, String.class).invoke(null, in, serverFile, secret);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-            System.exit(1);
         } else {
-            System.out.println("Cannot locate server file, giving up");
-            System.exit(1);
+            System.err.println();
+            if (!Boolean.getBoolean("vc.debug")) System.err.println("Please re-run VanillaCord with -Dvc.debug=true before reporting the following exception:");
+            throw new IllegalStateException("Cannot detect() extracted server file");
         }
     }
 

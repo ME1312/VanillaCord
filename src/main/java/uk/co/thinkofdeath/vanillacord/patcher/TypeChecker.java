@@ -25,8 +25,8 @@ public class TypeChecker extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        if ((access & Opcodes.ACC_STATIC) == 0) {
-            if (descriptor.equals("I")) hasTID = true;
+        if (secure && (access & Opcodes.ACC_STATIC) == 0) {
+            if (!hasTID && descriptor.equals("I")) hasTID = true;
             ++fCount;
         }
         return super.visitField(access, name, descriptor, signature, value);
@@ -39,11 +39,9 @@ public class TypeChecker extends ClassVisitor {
             @Override
             public void visitLdcInsn(Object cst) {
                 if (cst instanceof String) {
-                    if (secure) {
-                        if (hasTID && "Payload may not be larger than 1048576 bytes".equals(cst)) {
-                            cbQuery = fCount == 2;
-                            sbQuery = fCount == 3;
-                        }
+                    if (hasTID && "Payload may not be larger than 1048576 bytes".equals(cst)) {
+                        cbQuery = fCount == 2;
+                        sbQuery = fCount == 3;
                     }
                     if ("multiplayer.disconnect.incompatible".equals(cst) || "multiplayer.disconnect.outdated_server".equals(cst) || ((String) cst).startsWith("Outdated client! Please use")) {
                         handshakeListener = true;

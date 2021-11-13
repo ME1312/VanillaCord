@@ -47,12 +47,20 @@ public abstract class BundleEditor {
         }
     }
 
-    public static void main(String[] args) throws Exception {
-        if (current == null) {
-            if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
-            detect(new File(args[0]), new File(args[1]), args[2], (args.length == 4 && args[3].length() > 0)?args[3]:null);
+    public static void main(String[] args) {
+        try {
+            if (current == null) {
+                if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
+                detect(new File(args[0]), new File(args[1]), args[2], (args.length == 4 && args[3].length() > 0)?args[3]:null);
+            }
+            current.edit();
+        } catch (Throwable e) {
+            e.printStackTrace();
+            if (current != null) try {
+                current.close();
+            } catch (Throwable e2) {}
+            System.exit(1);
         }
-        current.edit();
     }
 
     protected abstract void extract() throws Exception;
