@@ -42,9 +42,9 @@ public class BEv1 extends BundleEditor {
     }
     public static void main(String[] args) {
         try {
-            String main;
-            if ((main = System.getProperty("vc.launch", "")).length() == 0) throw new IllegalAccessException();
-            if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
+            String main = System.getProperty("vc.launch", "");
+            if (main.length() == 0) throw new IllegalAccessException("Entry point not intended for access by end users");
+            if (args.length == 0) throw new IllegalArgumentException("args.length");
 
             PrintStream out = System.out;
             if (!Boolean.getBoolean("vc.debug")) System.setOut(new QuietStream());

@@ -50,7 +50,8 @@ public abstract class BundleEditor {
     public static void main(String[] args) {
         try {
             if (current == null) {
-                if (args.length != 3 && args.length != 4) throw new IllegalArgumentException();
+                if (BundleEditor.class.getClassLoader() == Thread.currentThread().getContextClassLoader()) throw new IllegalAccessException("Entry point not intended for access by end users");
+                if (args.length != 3 && args.length != 4) throw new IllegalArgumentException("args.length");
                 detect(new File(args[0]), new File(args[1]), args[2], (args.length == 4 && args[3].length() > 0)?args[3]:null);
             }
             current.edit();
