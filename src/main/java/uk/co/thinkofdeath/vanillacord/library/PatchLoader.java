@@ -1,6 +1,5 @@
 package uk.co.thinkofdeath.vanillacord.library;
 
-import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 

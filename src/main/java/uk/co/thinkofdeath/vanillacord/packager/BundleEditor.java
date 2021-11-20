@@ -2,7 +2,9 @@ package uk.co.thinkofdeath.vanillacord.packager;
 
 import com.google.common.io.ByteStreams;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.jar.Attributes;

@@ -4,7 +4,10 @@ import com.google.common.io.ByteStreams;
 import uk.co.thinkofdeath.vanillacord.library.PatchLoader;
 import uk.co.thinkofdeath.vanillacord.library.QuietStream;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.nio.file.Files;

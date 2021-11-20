@@ -7,7 +7,10 @@ import uk.co.thinkofdeath.vanillacord.generator.BungeeHelper;
 import uk.co.thinkofdeath.vanillacord.generator.VelocityHelper;
 
 import java.io.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -44,9 +47,10 @@ public class Patcher {
         out.getParentFile().mkdirs();
         if (out.exists()) out.delete();
 
-        try (ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
-             ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out))) {
-
+        try (
+                ZipInputStream zip = new ZipInputStream(new FileInputStream(in));
+                ZipOutputStream zop = new ZipOutputStream(new FileOutputStream(out))
+        ) {
             LinkedHashMap<String, byte[]> classes = new LinkedHashMap<>();
 
             if (secure) System.out.println("Requested modern IP forwarding");
@@ -206,7 +210,7 @@ public class Patcher {
     public static void manifest(InputStream in, OutputStream out) throws IOException {
         StringBuilder edited = new StringBuilder();
         String[] original = readAll(new InputStreamReader(in)).replace("\r\n", "\n").replace("\n ", "").split("\n");
-        Pattern pattern = Pattern.compile("^(?:Manifest-Version|Main-Class):.*$");
+        Pattern pattern = Pattern.compile("^(?:Manifest-Version|Main-Class|Multi-Release|Bundler-Format):.*$");
         for (String property : original) {
             Matcher m = pattern.matcher(property);
             if (m.find()) {
