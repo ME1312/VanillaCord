@@ -28,11 +28,11 @@ jar {
 }
 
 dependencies {
-    implementation group: 'org.json', name: 'json', version: '20180130'
+    implementation group: 'org.json', name: 'json', version: '20210307'
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.2.4'
     implementation group: 'com.mojang', name: 'authlib', version: '1.5.16'
     implementation group: 'io.netty', name: 'netty-all', version: '4.1.13.Final'
-    implementation group: 'org.ow2.asm', name: 'asm', version: '9.1'
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.2'
     implementation group: 'com.google.guava', name: 'guava', version: '17.0'
     testImplementation group: 'junit', name: 'junit', version: '4.11'
 }
