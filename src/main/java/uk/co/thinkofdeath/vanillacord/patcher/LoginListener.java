@@ -81,7 +81,6 @@ public class LoginListener extends ClassVisitor {
             return null;
         }
         return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
-            private int aload = 0;
             private int state = 0;
 
             @Override
@@ -113,7 +112,7 @@ public class LoginListener extends ClassVisitor {
                 if (state == 3) {
                     if (desc.contains("GameProfile")) {
                         setState(3, 2);
-                        super.visitVarInsn(Opcodes.ALOAD, aload);
+                        super.visitVarInsn(Opcodes.ALOAD, 0);
                     } else {
                         setState(3, 4);
                         return;
@@ -124,9 +123,8 @@ public class LoginListener extends ClassVisitor {
 
             @Override
             public void visitVarInsn(int opcode, int var) {
-                if (state == 2 && opcode == Opcodes.ALOAD) {
+                if (state == 2 && opcode == Opcodes.ALOAD && var == 0) {
                     setState(2, 3);
-                    aload = var;
                     return;
                 }
                 super.visitVarInsn(opcode, var);
