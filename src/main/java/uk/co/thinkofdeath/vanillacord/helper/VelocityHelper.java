@@ -172,7 +172,7 @@ public class VelocityHelper {
     }
 
     static final class NamespacedKey {
-        public static Object construct(String name, String id) {
+        public static Object construct(String space, String name) {
             throw exception("Class generation failed", new NoSuchMethodError());
         }
     }
