@@ -81,13 +81,14 @@ public class LoginListener extends ClassVisitor {
             return null;
         }
         return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
-            private int state = 0;
+            private byte state = 0;
 
             @Override
             public void visitLdcInsn(Object cst) {
                 if (cst.equals("Unexpected hello packet")) {
+                    if (state != 0) throw new IllegalStateException("Inject failed");
                     packetName = methodArgs.getArgumentTypes()[0].getInternalName();
-                    setState(0, 1);
+                    state = 1;
                 }
                 super.visitLdcInsn(cst);
             }
@@ -95,10 +96,10 @@ public class LoginListener extends ClassVisitor {
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
                 if (state == 1 && opcode == Opcodes.INVOKEVIRTUAL && desc.contains("GameProfile")) {
-                    setState(1, 2);
+                    state = 2;
 
                 } else if (state == 4) {
-                    setState(4, 5);
+                    state = 5;
                     mv.visitInsn(Opcodes.ICONST_0);
                     return;
                 }
@@ -109,10 +110,10 @@ public class LoginListener extends ClassVisitor {
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
                 if (state == 3) {
                     if (desc.contains("GameProfile")) {
-                        setState(3, 2);
+                        state = 2;
                         super.visitVarInsn(Opcodes.ALOAD, 0);
                     } else {
-                        setState(3, 4);
+                        state = 4;
                         return;
                     }
                 }
@@ -122,17 +123,10 @@ public class LoginListener extends ClassVisitor {
             @Override
             public void visitVarInsn(int opcode, int var) {
                 if (state == 2 && opcode == Opcodes.ALOAD && var == 0) {
-                    setState(2, 3);
+                    state = 3;
                     return;
                 }
                 super.visitVarInsn(opcode, var);
-            }
-
-            private void setState(int old, int n) {
-                if (state != old) {
-                    throw new IllegalStateException("Inject failed");
-                }
-                state = n;
             }
         };
     }
