@@ -85,21 +85,19 @@ public class LoginListener extends ClassVisitor {
 
             @Override
             public void visitLdcInsn(Object cst) {
-                super.visitLdcInsn(cst);
                 if (cst.equals("Unexpected hello packet")) {
                     packetName = methodArgs.getArgumentTypes()[0].getInternalName();
                     setState(0, 1);
                 }
+                super.visitLdcInsn(cst);
             }
 
             @Override
             public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-                if (opcode == Opcodes.INVOKEVIRTUAL) {
-                    if (desc.contains("GameProfile") && state == 1) {
-                        setState(1, 2);
-                    }
-                }
-                if (state == 4) {
+                if (state == 1 && opcode == Opcodes.INVOKEVIRTUAL && desc.contains("GameProfile")) {
+                    setState(1, 2);
+
+                } else if (state == 4) {
                     setState(4, 5);
                     mv.visitInsn(Opcodes.ICONST_0);
                     return;
