@@ -14,7 +14,7 @@ jar {
     archiveFileName = "VanillaCord.jar"
     destinationDirectory = file "$rootDir/artifacts"
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-    manifest.attributes("Main-Class": "uk.co.thinkofdeath.vanillacord.Launch")
+    manifest.from("src/main/java/META-INF/MANIFEST.MF")
     from {
         configurations.compileClasspath.filter {
             !it.name.contains("netty") \
