@@ -29,9 +29,9 @@ public class VelocityHelper {
     static final AttributeKey<Object> TRANSACTION_LOCK_KEY = AttributeKey.valueOf("-vch-transaction");
     static final AttributeKey<Object> INTERCEPTED_PACKET_KEY = AttributeKey.valueOf("-vch-intercepted");
 
-    public static void initializeTransaction(Object networkManager, Object intercepted) {
+    public static void initializeTransaction(Object network, Object intercepted) {
         try {
-            Channel channel = (Channel) NetworkManager.channel.get(networkManager);
+            Channel channel = (Channel) NetworkManager.channel.get(network);
             if (channel.attr(TRANSACTION_LOCK_KEY).get() != null) {
                 throw new IllegalStateException("Unexpected login request");
             }
@@ -42,16 +42,16 @@ public class VelocityHelper {
 
 
             // Send the packet
-            LoginRequestPacket.send(networkManager, 0, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
+            LoginRequestPacket.send(network, 0, NAMESPACE, new EmptyByteBuf(ByteBufAllocator.DEFAULT));
 
         } catch (Exception e) {
             throw exception(null, e);
         }
     }
 
-    public static void completeTransaction(Object networkManager, Object loginManager, Object response, String secret) {
+    public static void completeTransaction(Object network, Object login, Object response, String key) {
         try {
-            Channel channel = (Channel) NetworkManager.channel.get(networkManager);
+            Channel channel = (Channel) NetworkManager.channel.get(network);
             Object intercepted = channel.attr(INTERCEPTED_PACKET_KEY).getAndSet(null);
             if (intercepted == null) {
                 throw new IllegalStateException("Unexpected login response");
@@ -75,7 +75,7 @@ public class VelocityHelper {
                 byte[] raw = new byte[data.readableBytes()];
                 data.readBytes(raw).readerIndex(signature.length);
                 Mac mac = Mac.getInstance("HmacSHA256");
-                mac.init(new SecretKeySpec(getSecret(secret), mac.getAlgorithm()));
+                mac.init(new SecretKeySpec(getSeecret(key), mac.getAlgorithm()));
                 mac.update(raw);
                 if (!Arrays.equals(signature, mac.doFinal()))
                     throw QuietException.notify("Received invalid IP forwarding data. Did you use the right forwarding secret?");
@@ -84,7 +84,7 @@ public class VelocityHelper {
             // Retrieve IP forwarding data
             readVarInt(data); // we don't do anything with the protocol version at this time
 
-            NetworkManager.socket.set(networkManager, new InetSocketAddress(readString(data), ((InetSocketAddress) NetworkManager.socket.get(networkManager)).getPort()));
+            NetworkManager.socket.set(network, new InetSocketAddress(readString(data), ((InetSocketAddress) NetworkManager.socket.get(network)).getPort()));
             channel.attr(UUID_KEY).set(new UUID(data.readLong(), data.readLong()));
 
             readString(data); // we don't do anything with the username field
@@ -96,7 +96,7 @@ public class VelocityHelper {
             }
 
             // Continue login flow
-            LoginListener.handle(loginManager, intercepted);
+            LoginListener.handle(login, intercepted);
 
         } catch (Exception e) {
             throw exception(null, e);
@@ -104,12 +104,12 @@ public class VelocityHelper {
     }
 
     private static byte[] seecret = null;
-    private static byte[] getSecret(String def) throws IOException {
+    private static byte[] getSeecret(String def) throws IOException {
         if (seecret == null) {
             File config = new File("seecret.txt");
             if (config.exists()) {
-                Properties properties = new Properties();
                 try (FileInputStream reader = new FileInputStream(config)) {
+                    Properties properties = new Properties();
                     properties.load(reader);
 
                     String secret = properties.getProperty("modern-forwarding-secret");

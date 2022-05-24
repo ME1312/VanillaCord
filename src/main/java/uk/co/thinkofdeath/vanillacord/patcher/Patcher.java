@@ -191,7 +191,6 @@ public class Patcher {
                 classes.put("uk/co/thinkofdeath/vanillacord/helper/VelocityHelper.class", classWriter.toByteArray());
                 classes.putAll(queue);
                 clazz.close();
-
             }
 
             System.out.println("Exporting server jar");
