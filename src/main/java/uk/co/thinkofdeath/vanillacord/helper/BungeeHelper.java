@@ -25,17 +25,14 @@ public class BungeeHelper {
     public static void parseHandshake(Object network, Object handshake) {
         try {
             Channel channel = (Channel) NetworkManager.channel.get(network);
-            String host = Handshake.getHostName(handshake);
-
+            String uuid, host = Handshake.getHostName(handshake);
             String[] split = host.split("\00", 5);
-            if (split.length != 4 && split.length != 3) {
+            if ((split.length != 4 && split.length != 3) || (uuid = split[2]).length() != 32) {
                 throw QuietException.show("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
         //  split[0]; // we don't do anything with the server address
             NetworkManager.socket.set(network, new InetSocketAddress(split[1], ((InetSocketAddress) NetworkManager.socket.get(network)).getPort()));
-
-            String uuid = split[2];
             channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + '-' + uuid.substring(8, 12) + '-' + uuid.substring(12, 16) + '-' + uuid.substring(16, 20) + '-' + uuid.substring(20, 32)));
 
             if (getSeecret().length == 0) {
@@ -51,7 +48,7 @@ public class BungeeHelper {
                     boolean found = false;
                     for (Property property : properties) {
                         if (property.getName().equals("bungeeguard-token")) {
-                            if (!(found = !found) || Arrays.binarySearch(seecret, property.getValue()) < 0) {
+                            if (!(found = !found && Arrays.binarySearch(seecret, property.getValue()) >= 0)) {
                                 break;
                             }
                         } else if (i < modified.length) {
