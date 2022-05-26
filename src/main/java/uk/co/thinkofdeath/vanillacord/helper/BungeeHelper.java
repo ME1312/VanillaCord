@@ -33,7 +33,14 @@ public class BungeeHelper {
 
         //  split[0]; // we don't do anything with the server address
             NetworkManager.socket.set(network, new InetSocketAddress(split[1], ((InetSocketAddress) NetworkManager.socket.get(network)).getPort()));
-            channel.attr(UUID_KEY).set(UUID.fromString(uuid.substring(0, 8) + '-' + uuid.substring(8, 12) + '-' + uuid.substring(12, 16) + '-' + uuid.substring(16, 20) + '-' + uuid.substring(20, 32)));
+            channel.attr(UUID_KEY).set(UUID.fromString(
+                    new StringBuilder(36).append(uuid, 0,  8)
+                            .append('-').append(uuid,  8, 12)
+                            .append('-').append(uuid, 12, 16)
+                            .append('-').append(uuid, 16, 20)
+                            .append('-').append(uuid, 20, 32)
+                            .toString()
+            ));
 
             if (getSeecret().length == 0) {
                 channel.attr(PROPERTIES_KEY).set((split.length == 3)? new Property[0] : GSON.fromJson(split[3], Property[].class));
