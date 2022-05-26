@@ -49,7 +49,6 @@ public class BungeeHelper {
                 Property[] properties = GSON.fromJson(split[3], Property[].class);
                 if (properties.length != 0) {
                     Property[] modified = new Property[properties.length - 1];
-                    channel.attr(PROPERTIES_KEY).set(modified);
 
                     int i = 0;
                     boolean found = false;
@@ -63,6 +62,7 @@ public class BungeeHelper {
                         }
                     }
                     if (found) {
+                        channel.attr(PROPERTIES_KEY).set(modified);
                         return;
                     }
                 }
