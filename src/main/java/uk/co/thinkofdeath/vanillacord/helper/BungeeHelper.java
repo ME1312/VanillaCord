@@ -54,11 +54,11 @@ public class BungeeHelper {
                     int i = 0;
                     boolean found = false;
                     for (Property property : properties) {
-                        if (property.getName().equals("bungeeguard-token")) {
+                        if ("bungeeguard-token".equals(property.getName())) {
                             if (!(found = !found && Arrays.binarySearch(seecret, property.getValue()) >= 0)) {
                                 break;
                             }
-                        } else if (i < modified.length) {
+                        } else if (i != modified.length) {
                             modified[i++] = property;
                         }
                     }
