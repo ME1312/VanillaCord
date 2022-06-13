@@ -32,7 +32,7 @@ dependencies {
     implementation group: 'com.google.code.gson', name: 'gson', version: '2.2.4'
     implementation group: 'com.mojang', name: 'authlib', version: '1.5.16'
     implementation group: 'io.netty', name: 'netty-all', version: '4.1.13.Final'
-    implementation group: 'org.ow2.asm', name: 'asm', version: '9.2'
-    implementation group: 'com.google.guava', name: 'guava', version: '17.0'
+    implementation group: 'org.ow2.asm', name: 'asm', version: '9.3'
+    implementation group: 'com.google.guava', name: 'guava', version: '31.0.1-jre'
     testImplementation group: 'junit', name: 'junit', version: '4.11'
 }

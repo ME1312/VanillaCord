@@ -57,11 +57,9 @@ public abstract class BundleEditor {
                 detect(new File(args[0]), new File(args[1]), args[2], (args.length == 4 && args[3].length() > 0)?args[3]:null);
             }
             current.edit();
+
         } catch (Throwable e) {
             e.printStackTrace();
-            if (current != null) try {
-                current.close();
-            } catch (Throwable e2) {}
             System.exit(1);
         }
     }
@@ -86,11 +84,9 @@ public abstract class BundleEditor {
                 }
             }
         }
-
-        close();
     }
 
-    protected void close() throws Exception {
+    protected void close() {
         if (out.isDirectory() && !Boolean.getBoolean("vc.debug")) deleteDirectory(out);
         if (current == this) current = null;
     }

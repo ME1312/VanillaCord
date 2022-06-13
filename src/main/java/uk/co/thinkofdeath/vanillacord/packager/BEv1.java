@@ -30,7 +30,7 @@ public class BEv1 extends BundleEditor {
     @Override
     public void extract() throws Exception {
         System.out.println("Running the self-extracting server bundle");
-
+        Runtime.getRuntime().addShutdownHook(new Thread(this::close));
         runProcess(new ProcessBuilder(
                 System.getProperty("java.home") + File.separator + "bin" + File.separator + "java",
                 "-DbundlerRepoDir=" + out,
