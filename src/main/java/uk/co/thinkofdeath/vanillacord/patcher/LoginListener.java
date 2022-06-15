@@ -3,6 +3,8 @@ package uk.co.thinkofdeath.vanillacord.patcher;
 import com.mojang.authlib.GameProfile;
 import org.objectweb.asm.*;
 
+import java.util.LinkedList;
+
 public class LoginListener extends ClassVisitor {
     private final String networkManager;
     private final Class<?> clientQuery;
@@ -80,8 +82,10 @@ public class LoginListener extends ClassVisitor {
             mv.visitEnd();
             return null;
         }
+
         return new MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, desc, signature, exceptions)) {
-            private byte state = 0;
+            private final LinkedList<Runnable> undo = new LinkedList<Runnable>();
+            private int state = 0;
 
             @Override
             public void visitLdcInsn(Object cst) {
@@ -89,44 +93,87 @@ public class LoginListener extends ClassVisitor {
                     if (state != 0) throw new IllegalStateException("Inject failed");
                     packetName = methodArgs.getArgumentTypes()[0].getInternalName();
                     state = 1;
+                } else {
+                    undo();
                 }
                 super.visitLdcInsn(cst);
             }
 
             @Override
-            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
-                if (state == 1 && opcode == Opcodes.INVOKEVIRTUAL && desc.contains("GameProfile")) {
-                    state = 2;
-
-                } else if (state == 4) {
-                    state = 5;
-                    mv.visitInsn(Opcodes.ICONST_0);
+            public void visitVarInsn(int opcode, int index) {
+                if (state == 2 && opcode == Opcodes.ALOAD && index == 0) {
+                    undo.add(() -> super.visitVarInsn(opcode, index));
+                    state = 3;
                     return;
+                } else {
+                    undo();
                 }
-                super.visitMethodInsn(opcode, owner, name, desc, itf);
+                super.visitVarInsn(opcode, index);
             }
 
             @Override
             public void visitFieldInsn(int opcode, String owner, String name, String desc) {
-                if (state == 3) {
-                    if (desc.contains("GameProfile")) {
-                        state = 2;
-                        super.visitVarInsn(Opcodes.ALOAD, 0);
-                    } else {
-                        state = 4;
-                        return;
-                    }
+                if (state == 1 && opcode == Opcodes.PUTFIELD && desc.contains("GameProfile")) {
+                    state = 2;
+
+                } else if (state == 3 && opcode == Opcodes.GETFIELD && desc.contains("Minecraft")) {
+                    undo.add(() -> super.visitFieldInsn(opcode, owner, name, desc));
+                    state = 4;
+                    return;
+                } else {
+                    undo();
                 }
                 super.visitFieldInsn(opcode, owner, name, desc);
             }
 
             @Override
-            public void visitVarInsn(int opcode, int var) {
-                if (state == 2 && opcode == Opcodes.ALOAD && var == 0) {
-                    state = 3;
+            public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean isInterface) {
+                if (state == 4 && opcode == Opcodes.INVOKEVIRTUAL && desc.equals("()Z")) {
+                    mv.visitInsn(Opcodes.ICONST_0);
+                    state = -1;
                     return;
+                } else {
+                    undo();
                 }
-                super.visitVarInsn(opcode, var);
+                super.visitMethodInsn(opcode, owner, name, desc, isInterface);
+            }
+
+            @Override
+            public void visitEnd() {
+                if (state > 0) throw new IllegalStateException("Inject failed");
+                super.visitEnd();
+            }
+
+            private void undo() {
+                if (state > 2) {
+                    for (Runnable action : undo) action.run();
+                    undo.clear();
+                    state = 2;
+                }
+            }
+            // Only unexpected operations beyond this point
+            @Override
+            public void visitInsn(int opcode) {
+                undo();
+                super.visitInsn(opcode);
+            }
+
+            @Override
+            public void visitInvokeDynamicInsn(String name, String descriptor, Handle handle, Object... args) {
+                undo();
+                super.visitInvokeDynamicInsn(name, descriptor, handle, args);
+            }
+
+            @Override
+            public void visitJumpInsn(int opcode, Label label) {
+                undo();
+                super.visitJumpInsn(opcode, label);
+            }
+
+            @Override
+            public void visitTypeInsn(int opcode, String type) {
+                undo();
+                super.visitTypeInsn(opcode, type);
             }
         };
     }
