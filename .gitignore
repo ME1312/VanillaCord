@@ -1,7 +1,10 @@
-build/
-in/
-out/
-artifacts/
-.gradle/
-.idea
+# Hide System/IDE files
+.idea/
 *.iml
+.DS_STORE
+
+
+# Hide generated artifacts
+/artifacts/
+/build/
+/javadoc/
