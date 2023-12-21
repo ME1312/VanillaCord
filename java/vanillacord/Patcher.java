@@ -9,7 +9,6 @@ import vanillacord.packaging.Bundle;
 import vanillacord.packaging.FatJar;
 import vanillacord.packaging.Package;
 import vanillacord.patch.*;
-import vanillacord.translation.LoginExtension;
 import vanillacord.update.Updater;
 
 import java.io.*;
@@ -152,7 +151,7 @@ public class Patcher {
             if (file.sources.receive != null) { // 1.13+
                 updater.update("vanillacord/server/VelocityHelper.class", zos);
                 vanillacord.translation.LoginListener.translate(file, zos);
-                LoginExtension.translate(file, zos);
+                vanillacord.translation.LoginExtension.translate(file, zos);
                 vanillacord.translation.NamespacedKey.translate(file, zos);
             }
         }

@@ -78,23 +78,6 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
             mv.visitMaxs(0, 0);
             mv.visitEnd();
             return null;
-        } else if ((access & ACC_STATIC) != 0 && descriptor.equals("(Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;")) {
-            MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
-            mv.visitCode();
-            mv.visitLabel(new Label());
-            mv.visitTypeInsn(NEW, "java/lang/UnsupportedOperationException");
-            mv.visitInsn(DUP);
-            mv.visitLdcInsn("Removed by VanillaCord");
-            mv.visitMethodInsn(INVOKESPECIAL,
-                    "java/lang/UnsupportedOperationException",
-                    "<init>",
-                    "(Ljava/lang/String;)V",
-                    false
-            );
-            mv.visitInsn(ATHROW);
-            mv.visitMaxs(0, 0);
-            mv.visitEnd();
-            return null;
         } else if (extension != null && extension.name.equals(name) && extension.descriptor.equals(descriptor)) {
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
                 private boolean prelabel = true;
