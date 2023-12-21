@@ -78,7 +78,7 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
             mv.visitMaxs(0, 0);
             mv.visitEnd();
             return null;
-        } else if ((access & ACC_STATIC) == ACC_STATIC && descriptor.equals("(Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;")) {
+        } else if ((access & ACC_STATIC) != 0 && descriptor.equals("(Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;")) {
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             mv.visitCode();
             mv.visitLabel(new Label());
@@ -97,28 +97,32 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
             return null;
         } else if (extension != null && extension.name.equals(name) && extension.descriptor.equals(descriptor)) {
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                private boolean prelabel = true;
+
                 @Override
-                public void visitCode() {
-                    super.visitCode();
-                    Label label = new Label();
-                    mv.visitLabel(new Label());
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitFieldInsn(GETFIELD,
-                            file.sources.connection.owner.clazz.type.getInternalName(),
-                            file.sources.connection.name,
-                            file.sources.connection.descriptor
-                    );
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitVarInsn(ALOAD, 1);
-                    mv.visitMethodInsn(INVOKESTATIC,
-                            "vanillacord/server/VanillaCord",
-                            "completeTransaction",
-                            "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z",
-                            false
-                    );
-                    mv.visitJumpInsn(IFEQ, label);
-                    mv.visitInsn(RETURN);
-                    mv.visitLabel(label);
+                public void visitLabel(Label label) {
+                    super.visitLabel(label);
+                    if (prelabel) {
+                        label = new Label();
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitFieldInsn(GETFIELD,
+                                file.sources.connection.owner.clazz.type.getInternalName(),
+                                file.sources.connection.name,
+                                file.sources.connection.descriptor
+                        );
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitVarInsn(ALOAD, 1);
+                        mv.visitMethodInsn(INVOKESTATIC,
+                                "vanillacord/server/VanillaCord",
+                                "completeTransaction",
+                                "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z",
+                                false
+                        );
+                        mv.visitJumpInsn(IFEQ, label);
+                        mv.visitInsn(RETURN);
+                        mv.visitLabel(label);
+                        prelabel = false;
+                    }
                 }
             };
         } else if (file.sources.login.name.equals(name) && file.sources.login.descriptor.equals(descriptor)) {

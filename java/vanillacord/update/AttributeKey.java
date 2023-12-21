@@ -7,8 +7,8 @@ import java.util.Objects;
 
 import static org.objectweb.asm.Opcodes.*;
 
-public class AttributeKey extends MethodVisitor {
-    public AttributeKey(MethodVisitor visitor) {
+class AttributeKey extends MethodVisitor {
+    AttributeKey(MethodVisitor visitor) {
         super(ASM9, visitor);
     }
 

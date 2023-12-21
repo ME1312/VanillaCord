@@ -10,18 +10,22 @@ import vanillacord.translation.HandshakePacket;
 import vanillacord.translation.PlayerConnection;
 
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.UUID;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings({"AssignmentUsedAsCondition", "SpellCheckingInspection"})
 public class BungeeHelper extends ForwardingHelper {
-
     private static final Gson GSON = new Gson();
     private static final AttributeKey<UUID> UUID_KEY = new AttributeKey<>("-vch-uuid");
     private static final AttributeKey<Property[]> PROPERTIES_KEY = new AttributeKey<>("-vch-properties");
-    private final String[] seecret;
+    private final String[] seecrets;
 
-    BungeeHelper(String[] seecret) {
-        this.seecret = seecret;
+    BungeeHelper() {
+        this.seecrets = null;
+    }
+
+    BungeeHelper(LinkedList<String> seecrets) {
+        Arrays.sort(this.seecrets = seecrets.toArray(new String[0]));
     }
 
     public void parseHandshake(Object connection, Object handshake) {
@@ -40,34 +44,29 @@ public class BungeeHelper extends ForwardingHelper {
                     Long.parseUnsignedLong(uuid.substring(16, 32), 16)
             ));
 
-            if (seecret == null) {
+            if (seecrets == null) {
                 channel.attr(PROPERTIES_KEY).set((split.length == 3)? new Property[0] : GSON.fromJson(split[3], Property[].class));
-                return;
             } else if (split.length == 4) {
                 Property[] properties = GSON.fromJson(split[3], Property[].class);
                 if (properties.length != 0) {
-                    Property[] modified = new Property[properties.length - 1];
-
-                    int i = 0;
-                    boolean found = false;
+                    int length, i = 0;
+                    boolean invalid = true;
+                    final Property[] modified = new Property[length = properties.length - 1];
                     for (Property property : properties) {
                         if ("bungeeguard-token".equals(property.getName())) {
-                            if (!(found = !found && Arrays.binarySearch(seecret, property.getValue()) >= 0)) {
+                            if (invalid = !invalid || Arrays.binarySearch(seecrets, property.getValue()) < 0) {
                                 break;
                             }
-                        } else if (i != modified.length) {
+                        } else if (i != length) {
                             modified[i++] = property;
                         }
                     }
-                    if (found) {
-                        channel.attr(PROPERTIES_KEY).set(modified);
-                        return;
-                    }
+                    if (invalid) throw QuietException.show("Received invalid IP forwarding data. Did you use the right forwarding secret?");
+                    channel.attr(PROPERTIES_KEY).set(modified);
                 }
             }
-            throw QuietException.show("Received invalid IP forwarding data. Did you use the right forwarding secret?");
         } catch (Exception e) {
-            throw exception(null, e);
+            throw QuietException.show(e);
         }
     }
 
@@ -80,7 +79,7 @@ public class BungeeHelper extends ForwardingHelper {
             }
             return profile;
         } catch (Exception e) {
-            throw exception(null, e);
+            throw QuietException.show(e);
         }
     }
 }

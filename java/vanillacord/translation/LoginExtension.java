@@ -1,7 +1,10 @@
 package vanillacord.translation;
 
 import bridge.asm.HierarchicalWriter;
-import org.objectweb.asm.*;
+import org.objectweb.asm.ClassWriter;
+import org.objectweb.asm.Label;
+import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.Type;
 import vanillacord.data.ClassData;
 import vanillacord.data.FieldData;
 import vanillacord.data.MethodData;

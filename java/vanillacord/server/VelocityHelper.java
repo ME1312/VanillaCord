@@ -15,21 +15,28 @@ import vanillacord.translation.PlayerConnection;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.UUID;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-@SuppressWarnings("ConstantConditions")
+@SuppressWarnings("SpellCheckingInspection")
 public class VelocityHelper extends ForwardingHelper {
-
     private static final Object NAMESPACE = new Invocation(NamespacedKey.class).ofMethod("new").with("velocity").with("player_info").invoke();
     private static final AttributeKey<Object> LOGIN_KEY = new AttributeKey<>("-vch-login");
     private static final AttributeKey<GameProfile> PROFILE_KEY = new AttributeKey<>("-vch-profile");
-    private final byte[] seecret;
+    private final byte[][] seecrets;
 
-    VelocityHelper(byte[] seecret) {
-        this.seecret = seecret;
+    VelocityHelper(LinkedList<String> seecrets) {
+        int length, i = 0;
+        byte[][] array = this.seecrets = new byte[length = seecrets.size()][];
+        for (Iterator<String> it = seecrets.iterator(); i != length;) {
+            array[i++] = it.next().getBytes(UTF_8);
+        }
     }
 
     public boolean initializeTransaction(Object connection, Object intercepted) {
@@ -49,7 +56,7 @@ public class VelocityHelper extends ForwardingHelper {
                     .invoke();
 
         } catch (Exception e) {
-            throw exception(null, e);
+            throw QuietException.show(e);
         }
         return true;
     }
@@ -70,20 +77,8 @@ public class VelocityHelper extends ForwardingHelper {
                 throw QuietException.notify("Unknown transaction ID: " + id);
             if (data == null)
                 throw QuietException.notify("If you wish to use modern IP forwarding, please enable it in your Velocity config as well!");
-
-
-            // Validate the data signature
-            {
-                byte[] signature = new byte[32];
-                data.readBytes(signature);
-
-                byte[] raw = new byte[data.readableBytes()];
-                data.readBytes(raw).readerIndex(signature.length);
-                Mac mac = Mac.getInstance("HmacSHA256");
-                mac.init(new SecretKeySpec(seecret, mac.getAlgorithm()));
-                mac.update(raw);
-                if (!Arrays.equals(signature, mac.doFinal()))
-                    throw QuietException.notify("Received invalid IP forwarding data. Did you use the right forwarding secret?");
+            if (invalidSignature(data)) {
+                throw QuietException.notify("Received invalid IP forwarding data. Did you use the right forwarding secret?");
             }
 
             // Retrieve IP forwarding data
@@ -105,11 +100,12 @@ public class VelocityHelper extends ForwardingHelper {
                         .with(login)
                         .with(intercepted)
                         .invoke();
+
             } finally {
                 channel.attr(LOGIN_KEY).set(null);
             }
         } catch (Exception e) {
-            throw exception(null, e);
+            throw QuietException.show(e);
         }
         return true;
     }
@@ -119,8 +115,25 @@ public class VelocityHelper extends ForwardingHelper {
         try {
             return ((Channel) new Invocation(PlayerConnection.class).ofMethod("getChannel").with(connection).invoke()).attr(PROFILE_KEY).get();
         } catch (Exception e) {
-            throw exception(null, e);
+            throw QuietException.show(e);
         }
+    }
+
+    private boolean invalidSignature(ByteBuf data) throws NoSuchAlgorithmException, InvalidKeyException {
+        byte[] signature = new byte[32];
+        data.readBytes(signature);
+
+        byte[] raw = new byte[data.readableBytes()];
+        data.readBytes(raw).readerIndex(signature.length);
+        Mac mac = Mac.getInstance("HmacSHA256");
+        for (byte[] seecret : seecrets) {
+            mac.init(new SecretKeySpec(seecret, "HmacSHA256"));
+            mac.update(raw);
+            if (Arrays.equals(signature, mac.doFinal())) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static String readString(ByteBuf buf) {

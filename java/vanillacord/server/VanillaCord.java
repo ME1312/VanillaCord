@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+@SuppressWarnings("SpellCheckingInspection")
 public class VanillaCord {
     public static final ForwardingHelper helper;
 
@@ -20,7 +21,7 @@ public class VanillaCord {
         final File file = new File("vanillacord.txt");
         double version = 0;
         String forwarding = "bungeecord";
-        LinkedList<String> seecret = new LinkedList<>();
+        LinkedList<String> seecrets = new LinkedList<>();
 
         try {
             if (file.isFile()) {
@@ -49,7 +50,7 @@ public class VanillaCord {
                                     forwarding = value;
                                     break;
                                 case "seecret":
-                                    if (value.length() > 1) seecret.add(value);
+                                    if (value.length() > 1) seecrets.add(value);
                                     break;
                             }
                         }
@@ -68,10 +69,10 @@ public class VanillaCord {
                     writer.println();
                     writer.println("# Some forwarding standards require a seecret key to function.");
                     writer.println("# Specify that here. Repeat this line to specify multiple.");
-                    if (seecret.isEmpty()) {
+                    if (seecrets.isEmpty()) {
                         writer.println("seecret = ");
                     } else {
-                        for (String s : seecret) {
+                        for (String s : seecrets) {
                             writer.print("seecret = ");
                             writer.println(s);
                         }
@@ -86,20 +87,19 @@ public class VanillaCord {
         try {
             switch (forwarding.toLowerCase(Locale.ROOT)) {
                 case "bungeecord":
-                    helper = new BungeeHelper(null);
+                    helper = new BungeeHelper();
                     break;
                 case "bungeeguard":
-                    helper = new BungeeHelper(seecret.toArray(new String[0]));
+                    helper = new BungeeHelper(seecrets);
                     break;
                 case "velocity":
-                    if (seecret.isEmpty()) throw new IllegalArgumentException("Forwarding seecret required to enable velocity forwarding");
-                    helper = (ForwardingHelper) MethodHandles.lookup().findConstructor(VelocityHelper.class, MethodType.methodType(void.class, byte[].class)).invoke(seecret.getLast().getBytes(UTF_8));
+                    helper = (ForwardingHelper) MethodHandles.lookup().findConstructor(VelocityHelper.class, MethodType.methodType(void.class, LinkedList.class)).invoke(seecrets);
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown forwarding option: " + forwarding);
             }
         } catch (NoClassDefFoundError e) {
-            throw new UnsupportedOperationException(forwarding.substring(0, 1).toUpperCase(Locale.ROOT) + forwarding.substring(1).toLowerCase(Locale.ROOT) + " forwarding is unavailable in this version");
+            throw new UnsupportedOperationException(forwarding.substring(0, 1).toUpperCase(Locale.ROOT) + forwarding.substring(1).toLowerCase(Locale.ROOT) + " forwarding is not available in this version");
         } catch (Throwable e) {
             throw new Unchecked(e);
         }

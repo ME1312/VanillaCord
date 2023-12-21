@@ -10,18 +10,26 @@ public class QuietException extends RuntimeException {
     }
 
     static QuietException notify(String text) {
-        QuietException e = new QuietException(text);
         System.out.println((text == null)?
                 "VanillaCord has disconnected a player because of an unspecified error." :
                 "VanillaCord has disconnected a player with the following error message:"
         );
-        return e;
+        return new QuietException(text);
     }
 
     static QuietException show(String text) {
         QuietException e = notify(text);
         System.out.println('\t' + text);
         return e;
+    }
+
+    static QuietException show(Throwable e) {
+        if (e instanceof QuietException) {
+            return (QuietException) e;
+        } else {
+            e.printStackTrace();
+            return new QuietException(e);
+        }
     }
 
     private final Throwable e;

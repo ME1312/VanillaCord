@@ -31,31 +31,34 @@ public class LoginPacket extends ClassVisitor implements Function<ClassVisitor, 
                 file.sources.login.owner.clazz.implemented(file.types.load(args[0]))
         ) {
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                private boolean prelabel = true;
 
                 @Override
-                public void visitCode() {
-                    super.visitCode();
-                    Label label = new Label();
-                    mv.visitLabel(new Label());
-                    mv.visitVarInsn(ALOAD, 1);
-                    if (!file.sources.login.owner.clazz.type.equals(args[0])) {
-                        mv.visitTypeInsn(CHECKCAST, file.sources.login.owner.clazz.type.getInternalName());
+                public void visitLabel(Label label) {
+                    super.visitLabel(label);
+                    if (prelabel) {
+                        label = new Label();
+                        mv.visitVarInsn(ALOAD, 1);
+                        if (!file.sources.login.owner.clazz.type.equals(args[0])) {
+                            mv.visitTypeInsn(CHECKCAST, file.sources.login.owner.clazz.type.getInternalName());
+                        }
+                        mv.visitFieldInsn(GETFIELD,
+                                file.sources.connection.owner.clazz.type.getInternalName(),
+                                file.sources.connection.name,
+                                file.sources.connection.descriptor
+                        );
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitMethodInsn(INVOKESTATIC,
+                                "vanillacord/server/VanillaCord",
+                                "initializeTransaction",
+                                "(Ljava/lang/Object;Ljava/lang/Object;)Z",
+                                false
+                        );
+                        mv.visitJumpInsn(IFEQ, label);
+                        mv.visitInsn(RETURN);
+                        mv.visitLabel(label);
+                        prelabel = false;
                     }
-                    mv.visitFieldInsn(GETFIELD,
-                            file.sources.connection.owner.clazz.type.getInternalName(),
-                            file.sources.connection.name,
-                            file.sources.connection.descriptor
-                    );
-                    mv.visitVarInsn(ALOAD, 0);
-                    mv.visitMethodInsn(INVOKESTATIC,
-                            "vanillacord/server/VanillaCord",
-                            "initializeTransaction",
-                            "(Ljava/lang/Object;Ljava/lang/Object;)Z",
-                            false
-                    );
-                    mv.visitJumpInsn(IFEQ, label);
-                    mv.visitInsn(RETURN);
-                    mv.visitLabel(label);
                 }
             };
         }

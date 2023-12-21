@@ -10,7 +10,7 @@ public class FieldData {
     public final String name, descriptor, signature;
     public final Object value;
 
-    public FieldData(ClassData owner, int access, String name, String descriptor, String signature, Object value) {
+    FieldData(ClassData owner, int access, String name, String descriptor, String signature, Object value) {
         this.owner = owner;
         this.access = access;
         this.type = owner.types.load(Type.getType(descriptor));

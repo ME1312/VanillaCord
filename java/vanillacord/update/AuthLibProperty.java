@@ -6,8 +6,8 @@ import java.util.Locale;
 
 import static org.objectweb.asm.Opcodes.INVOKEVIRTUAL;
 
-public class AuthLibProperty extends AttributeKey {
-    public AuthLibProperty(MethodVisitor visitor) {
+class AuthLibProperty extends AttributeKey {
+    AuthLibProperty(MethodVisitor visitor) {
         super(visitor);
     }
 

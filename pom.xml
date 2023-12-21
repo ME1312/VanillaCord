@@ -26,7 +26,7 @@
     </pluginRepositories>
 
     <properties>
-        <bridge.version>23w51a</bridge.version>
+        <bridge.version>23w51b</bridge.version>
     </properties>
 
     <dependencies>

@@ -79,7 +79,7 @@ public class Patcher {
 
                     if (format != null && format.length() != 0) {
                         file = new Bundle(format);
-                    } else { // version < 1.18
+                    } else { // 1.18 > version
                         file = new FatJar();
                     }
                     break;
