@@ -63,9 +63,10 @@ public final class Downloader {
                 }
             }
 
+            File output = new File("out");
             for (String version : args) {
                 File in = new File(library, version + ".jar");
-                File out = new File("out", version + ".jar");
+                File out = new File(output, version + ".jar");
 
                 if (in.exists()) {
                     System.out.print("Using local Minecraft server version ");
@@ -113,7 +114,7 @@ public final class Downloader {
                     }
                 }
 
-                out.getParentFile().mkdir();
+                output.mkdir();
                 Patcher.patch(in, out);
                 System.out.println();
             }

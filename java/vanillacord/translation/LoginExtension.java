@@ -33,7 +33,7 @@ public class LoginExtension {
             }
         }
 
-        if (file.sources.receive.owner.clazz.extended(file.types.load(Type.getObjectType("java/lang/Record")))) {
+        if (file.sources.receive.owner.clazz.extended(file.types.loadClass("java/lang/Record"))) {
             ClassData send = null;
             file.sources.namespace = (ClassData) file.sources.send.arguments[0].data();
             for (FieldData field : file.sources.send.owner.fields.values()) {

@@ -20,11 +20,11 @@ public class Updater {
         this.file = file;
         this.source = source;
 
-        if (file.types.load(Type.getObjectType("com/mojang/authlib/properties/Property")).extended(file.types.load(Type.getObjectType("java/lang/Record")))) {
+        if (file.types.loadClass("com/mojang/authlib/properties/Property").extended(file.types.loadClass("java/lang/Record"))) {
             this.updates = AuthLibProperty::new;
         } else { // 1.20 > version
             final Object key;
-            if (!((key = file.types.load(Type.getObjectType("io/netty/util/AttributeKey")).data()) instanceof ClassData)
+            if (!((key = file.types.loadClass("io/netty/util/AttributeKey").data()) instanceof ClassData)
                     || ((ClassData) key).methods.containsKey("valueOf(Ljava/lang/String;)Lio/netty/util/AttributeKey;")) {
                 this.updates = AttributeKey::new;
             } else { // 1.12 > version

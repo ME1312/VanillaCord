@@ -97,7 +97,7 @@ public class Patcher {
             patches.put(file.sources.handshake.arguments[0].type.getInternalName(), new HandshakePacket());
             patches.put(file.sources.login.owner.clazz.type.getInternalName(), new LoginListener(file));
             patches.put(file.sources.login.arguments[0].type.getInternalName(), new LoginPacket(file));
-            if (file.sources.receive != null && file.sources.receive.owner.clazz.extended(file.types.load(Type.getObjectType("java/lang/Record")))) { // 1.20+
+            if (file.sources.receive != null && file.sources.receive.owner.clazz.extended(file.types.loadClass("java/lang/Record"))) { // 1.20+
                 patches.put(file.sources.receive.owner.clazz.type.getInternalName(), new vanillacord.patch.LoginExtension(file));
             }
 
@@ -154,6 +154,8 @@ public class Patcher {
                 vanillacord.translation.LoginExtension.translate(file, zos);
                 vanillacord.translation.NamespacedKey.translate(file, zos);
             }
+
+            System.out.println("Closing jarfiles");
         }
     }
 
