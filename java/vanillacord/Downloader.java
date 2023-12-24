@@ -37,6 +37,7 @@ public final class Downloader {
         return null;
     }
 
+    @SuppressWarnings("AssignmentUsedAsCondition")
     public static void main(String[] args) {
         if (args.length == 0) {
             System.out.println("VanillaCord requires you to specify at least one minecraft version to patch");
@@ -44,8 +45,9 @@ public final class Downloader {
         }
         System.out.println(Patcher.brand);
         try {
+            final boolean multiple;
             System.out.print("Searching for the specified server version");
-            if (args.length != 1) System.out.println('s');
+            if (multiple = args.length != 1) System.out.println('s');
             System.out.println();
 
             Downloader downloads = null;
@@ -116,7 +118,7 @@ public final class Downloader {
 
                 output.mkdir();
                 Patcher.patch(in, out);
-                System.out.println();
+                if (multiple) System.out.println();
             }
 
         } catch (Throwable e) {

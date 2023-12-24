@@ -98,7 +98,7 @@ public class Patcher {
             patches.put(file.sources.login.owner.clazz.type.getInternalName(), new LoginListener(file));
             patches.put(file.sources.login.arguments[0].type.getInternalName(), new LoginPacket(file));
             if (file.sources.receive != null && file.sources.receive.owner.clazz.extended(file.types.loadClass("java/lang/Record"))) { // 1.20+
-                patches.put(file.sources.receive.owner.clazz.type.getInternalName(), new vanillacord.patch.LoginExtension(file));
+                patches.put(file.sources.receive.owner.clazz.type.getInternalName(), new LoginExtension(file));
             }
 
             String name;
