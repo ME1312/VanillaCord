@@ -25,32 +25,22 @@ public class VanillaCord {
 
         try {
             if (file.isFile()) {
-                final Pattern format = Pattern.compile("^\\s*([^#].*?)(\\s*)=");
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
-                    for (String value; (value = reader.readLine()) != null;) {
-                        final Matcher header = format.matcher(value);
-                        if (header.find()) {
-                            int i = header.end();
-                            whitespace: for (int c, maximum = Math.min(i + header.group(2).length(), value.length()); i < maximum;) {
-                                switch (c = value.codePointAt(i)) {
-                                    case ' ':
-                                    case '\t':
-                                        i += Character.charCount(c);
-                                        continue;
-                                    default:
-                                        break whitespace;
-                                }
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8))) {
+                    for (String line; (line = reader.readLine()) != null;) {
+                        int start, end;
+                        if (line.lastIndexOf('#', 0) < 0 && (start = line.indexOf('=')) >= 0) {
+                            for (end = start + 1; start != 0 && line.codePointBefore(start) == ' '; --start) {
+                                if (end != line.length() && line.codePointAt(end) == ' ') ++end;
                             }
-                            value = value.substring(i);
-                            switch (header.group(1).toLowerCase(Locale.ROOT)) {
+                            switch (line.substring(0, start).toLowerCase(Locale.ROOT)) {
                                 case "version":
-                                    version = Double.parseDouble(value);
+                                    version = Double.parseDouble(line.substring(end));
                                     break;
                                 case "forwarding":
-                                    forwarding = value;
+                                    forwarding = line.substring(end);
                                     break;
                                 case "seecret":
-                                    if (value.length() > 1) seecrets.add(value);
+                                    if (line.length() > end) seecrets.add(line.substring(end));
                                     break;
                             }
                         }
