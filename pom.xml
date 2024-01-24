@@ -9,7 +9,7 @@
 
     <repositories>
         <repository>
-            <id>minecraft-repo></id>
+            <id>minecraft-repo</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
         <repository>
@@ -26,7 +26,7 @@
     </pluginRepositories>
 
     <properties>
-        <bridge.version>23w51e</bridge.version>
+        <bridge.version>24w04b</bridge.version>
     </properties>
 
     <dependencies>

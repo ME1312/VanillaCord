@@ -92,7 +92,7 @@ public final class Downloader {
 
                     MessageDigest sha1;
                     (sha1 = MessageDigest.getInstance("SHA-1")).update(data);
-                    if (!Digest.isEqual(digest = sha1.digest(), location.getString("sha1"))) {
+                    if (!Digest.equals(digest = sha1.digest(), location.getString("sha1"))) {
                         throw new IllegalStateException("Downloaded profile is not as expected: SHA-1 checksum: " + Digest.toHex(digest) + " != " + location.getString("sha1"));
                     }
 
@@ -107,7 +107,7 @@ public final class Downloader {
                         file.close();
                         if (in.length() != profile.getLong("size")) {
                             throw new IllegalStateException("Downloaded jarfile is not as expected: File size: " + in.length() + " != " + profile.getLong("size"));
-                        } else if (!Digest.isEqual(digest = sha1.digest(), profile.getString("sha1"))) {
+                        } else if (!Digest.equals(digest = sha1.digest(), profile.getString("sha1"))) {
                             throw new IllegalStateException("Downloaded jarfile is not as expected: SHA-1 checksum: " + Digest.toHex(digest) + " != " + profile.getString("sha1"));
                         }
                     } catch (Throwable e) {

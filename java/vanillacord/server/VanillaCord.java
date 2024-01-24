@@ -28,7 +28,7 @@ public class VanillaCord {
                 try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8))) {
                     for (String line; (line = reader.readLine()) != null;) {
                         int start, end;
-                        if (line.lastIndexOf('#', 0) < 0 && (start = line.indexOf('=')) >= 0) {
+                        if (line.lastIndexOf('#', 0) != 0 && (start = line.indexOf('=')) >= 0) {
                             for (end = start + 1; start != 0 && line.codePointBefore(start) == ' '; --start) {
                                 if (end != line.length() && line.codePointAt(end) == ' ') ++end;
                             }
