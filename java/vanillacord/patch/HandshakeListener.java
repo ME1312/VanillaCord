@@ -35,17 +35,12 @@ public class HandshakeListener extends ClassVisitor implements Function<ClassVis
     public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
         if (file.sources.handshake.name.equals(name) && file.sources.handshake.descriptor.equals(descriptor)) {
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
-                private byte state = 0;
-
-                public void visitLookupSwitchInsn(Label dflt, int[] keys, Label[] labels) {
-                    super.visitLookupSwitchInsn(dflt, keys, labels);
-                    if (state == 0) state = 1;
-                }
+                private boolean vanilla = true;
 
                 @Override
                 public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-                    if (state == 1 && opcode == INVOKEVIRTUAL) {
+                    if (vanilla && opcode == INVOKEVIRTUAL && file.sources.connection.type.type.getInternalName().equals(owner)) {
                         mv.visitLabel(new Label());
                         mv.visitVarInsn(ALOAD, 0);
                         mv.visitFieldInsn(GETFIELD,
@@ -60,14 +55,14 @@ public class HandshakeListener extends ClassVisitor implements Function<ClassVis
                                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
                                 false
                         );
-                        state = 2;
+                        vanilla = false;
                     }
                 }
 
                 @Override
                 public void visitEnd() {
                     super.visitEnd();
-                    if (state != 2) throw new IllegalStateException("Hook failed: 0x0" + state);
+                    if (vanilla) throw new IllegalStateException("Hook failed");
                 }
             };
         }

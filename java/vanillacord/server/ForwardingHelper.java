@@ -3,8 +3,13 @@ package vanillacord.server;
 import com.mojang.authlib.GameProfile;
 
 public abstract class ForwardingHelper {
+
+    ForwardingHelper() {
+
+    }
+
     public void parseHandshake(Object connection, Object handshake) {
-      //return;
+
     }
 
     public boolean initializeTransaction(Object connection, Object hello) {

@@ -95,6 +95,10 @@ public class VanillaCord {
         }
     }
 
+    private VanillaCord() {
+
+    }
+
     public static void parseHandshake(Object connection, Object handshake) {
         helper.parseHandshake(connection, handshake);
     }

@@ -24,7 +24,7 @@ public class HierarchyVisitor extends HierarchyScanner {
 
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
-        this.data.fields.put(name, new FieldData(this.data, access, name, descriptor, signature, value));
+        this.data.fields.put(descriptor + name, new FieldData(this.data, access, name, descriptor, signature, value));
         if ((access & Opcodes.ACC_STATIC) == 0) {
             if (!hasTID && descriptor.equals("I")) hasTID = true;
         }

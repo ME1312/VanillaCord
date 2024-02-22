@@ -37,13 +37,12 @@ public class DedicatedServer extends ClassVisitor implements Function<ClassVisit
                     if (state == 0 && opcode == INVOKEVIRTUAL && owner.equals("java/lang/Thread") && descriptor.equals("()V")) {
                         state = 1;
                     } else if (state == 3 && opcode == INVOKEINTERFACE && owner.endsWith("/Logger")) {
-                        mv.visitTypeInsn(NEW, "vanillacord/server/VanillaCord");
-                        mv.visitMethodInsn(INVOKESPECIAL,
+                        mv.visitFieldInsn(GETSTATIC,
                                 "vanillacord/server/VanillaCord",
-                                "<init>",
-                                "()V",
-                                false
+                                "helper",
+                                "Lvanillacord/server/ForwardingHelper;"
                         );
+                        mv.visitInsn(POP);
                         state = 4;
                     }
                 }
