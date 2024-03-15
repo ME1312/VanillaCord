@@ -42,6 +42,11 @@ public class HandshakeListener extends ClassVisitor implements Function<ClassVis
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
                     if (vanilla && opcode == INVOKEVIRTUAL && file.sources.connection.type.type.getInternalName().equals(owner)) {
                         mv.visitLabel(new Label());
+                        mv.visitFieldInsn(GETSTATIC,
+                                "vanillacord/server/VanillaCord",
+                                "helper",
+                                "Lvanillacord/server/ForwardingHelper;"
+                        );
                         mv.visitVarInsn(ALOAD, 0);
                         mv.visitFieldInsn(GETFIELD,
                                 connection.owner.clazz.type.getInternalName(),
@@ -49,8 +54,8 @@ public class HandshakeListener extends ClassVisitor implements Function<ClassVis
                                 connection.descriptor
                         );
                         mv.visitVarInsn(ALOAD, 1);
-                        mv.visitMethodInsn(INVOKESTATIC,
-                                "vanillacord/server/VanillaCord",
+                        mv.visitMethodInsn(INVOKEVIRTUAL,
+                                "vanillacord/server/ForwardingHelper",
                                 "parseHandshake",
                                 "(Ljava/lang/Object;Ljava/lang/Object;)V",
                                 false

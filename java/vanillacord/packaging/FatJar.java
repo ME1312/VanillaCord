@@ -1,7 +1,7 @@
 package vanillacord.packaging;
 
 import org.objectweb.asm.ClassReader;
-import vanillacord.data.HierarchyVisitor;
+import vanillacord.data.SourceScanner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -17,7 +17,7 @@ public class FatJar extends Package {
         try (ZipInputStream zis = new ZipInputStream(new FileInputStream(file))) {
             for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
                 if (entry.getName().endsWith(".class")) {
-                    new ClassReader(zis).accept(new HierarchyVisitor(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
+                    new ClassReader(zis).accept(new SourceScanner(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG);
                 }
             }
         }

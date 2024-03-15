@@ -6,12 +6,12 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import vanillacord.packaging.Package;
 
-public class HierarchyVisitor extends HierarchyScanner {
+public class SourceScanner extends HierarchyScanner {
     private final Package file;
     private ClassData data;
     private boolean hasTID;
 
-    public HierarchyVisitor(Package file) {
+    public SourceScanner(Package file) {
         super(Opcodes.ASM9, file.types);
         this.file = file;
     }
@@ -42,15 +42,15 @@ public class HierarchyVisitor extends HierarchyScanner {
                 if (value instanceof String) {
                     if ("Server console handler".equals(value)) {
                         System.out.print("Found the dedicated server: ");
-                        System.out.println(HierarchyVisitor.super.name);
+                        System.out.println(SourceScanner.super.name);
                         file.sources.startup = data;
                     } else if ("Unexpected hello packet".equals(value)) {
                         System.out.print("Found the login listener: ");
-                        System.out.println(HierarchyVisitor.super.name);
+                        System.out.println(SourceScanner.super.name);
                         file.sources.login = data;
                     } else if (hasTID && "Payload may not be larger than 1048576 bytes".equals(value)) {
                         System.out.print("Found a login extension packet: ");
-                        System.out.println(HierarchyVisitor.super.name);
+                        System.out.println(SourceScanner.super.name);
                         if (file.sources.send == null) {
                             file.sources.send = data;
                         } else {
@@ -58,7 +58,7 @@ public class HierarchyVisitor extends HierarchyScanner {
                         }
                     } else if ("multiplayer.disconnect.incompatible".equals(value) || "multiplayer.disconnect.outdated_server".equals(value) || ((String) value).startsWith("Outdated client! Please use")) {
                         System.out.print("Found the handshake listener: ");
-                        System.out.println(HierarchyVisitor.super.name);
+                        System.out.println(SourceScanner.super.name);
                         file.sources.handshake = data;
                     }
                 }

@@ -4,7 +4,7 @@ import bridge.asm.HierarchyScanner;
 import org.objectweb.asm.ClassReader;
 import vanillacord.Patcher;
 import vanillacord.data.Digest;
-import vanillacord.data.HierarchyVisitor;
+import vanillacord.data.SourceScanner;
 
 import java.io.*;
 import java.net.URL;
@@ -63,7 +63,7 @@ public class Bundle extends Package {
     public ZipInputStream read(File file) throws Throwable {
         URLClassLoader bundle = new URLClassLoader(new URL[]{ (this.file = file).toURI().toURL() }, null);
         load(bundle, "libraries", reader -> reader.accept(new HierarchyScanner(types), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
-        List<String[]> versions = load(bundle, "versions", reader -> reader.accept(new HierarchyVisitor(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
+        List<String[]> versions = load(bundle, "versions", reader -> reader.accept(new SourceScanner(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
         if (versions.size() != 1) throw new IllegalStateException("More or less than one version was distributed");
         return new ZipInputStream(bundle.getResourceAsStream("META-INF/versions/" + (server = versions.get(0))[2]));
     }

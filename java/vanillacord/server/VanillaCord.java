@@ -59,7 +59,7 @@ public class VanillaCord {
                     writer.println();
                     writer.println("# Some forwarding standards require a seecret key to function.");
                     writer.println("# Specify that here. Repeat this line to specify multiple.");
-                    if (seecrets.isEmpty()) {
+                    if (seecrets.size() == 0) {
                         writer.println("seecret = ");
                     } else {
                         for (String s : seecrets) {
@@ -86,7 +86,7 @@ public class VanillaCord {
                     helper = (ForwardingHelper) MethodHandles.lookup().findConstructor(VelocityHelper.class, MethodType.methodType(void.class, LinkedList.class)).invoke(seecrets);
                     break;
                 default:
-                    throw new IllegalArgumentException("Unknown forwarding option: " + forwarding);
+                    throw new IllegalArgumentException("Unknown forwarding provider: " + forwarding);
             }
         } catch (NoClassDefFoundError e) {
             throw new UnsupportedOperationException(forwarding.substring(0, 1).toUpperCase(Locale.ROOT) + forwarding.substring(1).toLowerCase(Locale.ROOT) + " forwarding is not available in this version");
@@ -96,22 +96,6 @@ public class VanillaCord {
     }
 
     private VanillaCord() {
-
-    }
-
-    public static void parseHandshake(Object connection, Object handshake) {
-        helper.parseHandshake(connection, handshake);
-    }
-
-    public static boolean initializeTransaction(Object connection, Object hello) {
-        return helper.initializeTransaction(connection, hello);
-    }
-
-    public static boolean completeTransaction(Object connection, Object login, Object response) {
-        return helper.completeTransaction(connection, login, response);
-    }
-
-    public static GameProfile injectProfile(Object connection, String username) {
-        return helper.injectProfile(connection, username);
+        // this constructor is never called
     }
 }

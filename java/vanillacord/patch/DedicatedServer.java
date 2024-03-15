@@ -34,15 +34,24 @@ public class DedicatedServer extends ClassVisitor implements Function<ClassVisit
                 @Override
                 public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
                     super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-                    if (state == 0 && opcode == INVOKEVIRTUAL && owner.equals("java/lang/Thread") && descriptor.equals("()V")) {
+                    if (state == 0 && opcode == INVOKEVIRTUAL && owner.equals("java/lang/Thread") && name.equals("start") && descriptor.equals("()V")) {
                         state = 1;
                     } else if (state == 3 && opcode == INVOKEINTERFACE && owner.endsWith("/Logger")) {
+                        Label start, end, jump, handler;
+                        mv.visitTryCatchBlock(start = new Label(), end = new Label(), handler = new Label(), "java/lang/ExceptionInInitializerError");
+                        mv.visitLabel(start);
                         mv.visitFieldInsn(GETSTATIC,
                                 "vanillacord/server/VanillaCord",
                                 "helper",
                                 "Lvanillacord/server/ForwardingHelper;"
                         );
                         mv.visitInsn(POP);
+                        mv.visitLabel(end);
+                        mv.visitJumpInsn(GOTO, jump = new Label());
+                        mv.visitLabel(handler);
+                        mv.visitMethodInsn(INVOKEVIRTUAL, "java/lang/ExceptionInInitializerError", "getCause", "()Ljava/lang/Throwable;", false);
+                        mv.visitInsn(ATHROW);
+                        mv.visitLabel(jump);
                         state = 4;
                     }
                 }

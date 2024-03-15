@@ -55,6 +55,11 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
             MethodVisitor mv = super.visitMethod(access, name, descriptor, signature, exceptions);
             mv.visitCode();
             mv.visitLabel(new Label());
+            mv.visitFieldInsn(GETSTATIC,
+                    "vanillacord/server/VanillaCord",
+                    "helper",
+                    "Lvanillacord/server/ForwardingHelper;"
+            );
             mv.visitVarInsn(ALOAD, 0);
             mv.visitFieldInsn(GETFIELD,
                     file.sources.connection.owner.clazz.type.getInternalName(),
@@ -68,8 +73,8 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                     "()Ljava/lang/String;",
                     false
             );
-            mv.visitMethodInsn(INVOKESTATIC,
-                    "vanillacord/server/VanillaCord",
+            mv.visitMethodInsn(INVOKEVIRTUAL,
+                    "vanillacord/server/ForwardingHelper",
                     "injectProfile",
                     "(Ljava/lang/Object;Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;",
                     false
@@ -87,6 +92,11 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                     super.visitLabel(label);
                     if (prelabel) {
                         label = new Label();
+                        mv.visitFieldInsn(GETSTATIC,
+                                "vanillacord/server/VanillaCord",
+                                "helper",
+                                "Lvanillacord/server/ForwardingHelper;"
+                        );
                         mv.visitVarInsn(ALOAD, 0);
                         mv.visitFieldInsn(GETFIELD,
                                 file.sources.connection.owner.clazz.type.getInternalName(),
@@ -95,8 +105,8 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                         );
                         mv.visitVarInsn(ALOAD, 0);
                         mv.visitVarInsn(ALOAD, 1);
-                        mv.visitMethodInsn(INVOKESTATIC,
-                                "vanillacord/server/VanillaCord",
+                        mv.visitMethodInsn(INVOKEVIRTUAL,
+                                "vanillacord/server/ForwardingHelper",
                                 "completeTransaction",
                                 "(Ljava/lang/Object;Ljava/lang/Object;Ljava/lang/Object;)Z",
                                 false
@@ -112,17 +122,20 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
                 private final LinkedList<Runnable> undo = new LinkedList<Runnable>();
                 private final MethodVisitor mv = super.mv;
-                private int state = 0;
+                private byte state = 0;
                 private Label skip;
 
                 @Override
                 public void visitVarInsn(int opcode, int index) {
                     if (state == 1 && opcode == ALOAD && index == 0) {
-                        undo.add(() -> super.visitVarInsn(opcode, index));
+                        undo.add(() -> super.visitVarInsn(ALOAD, 0));
                         state = 2;
                         return;
-                    } else {
-                        undo();
+                    }
+                    undo();
+                    if (state == 6 && opcode == ALOAD && index == 0) {
+                        undo.add(() -> super.visitVarInsn(ALOAD, 0));
+                        return;
                     }
                     super.visitVarInsn(opcode, index);
                 }
@@ -144,17 +157,12 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
 
                     } else if (state == 2 && opcode == GETFIELD && desc.equals("Lnet/minecraft/server/MinecraftServer;")) {
                         state = 3;
-                        undo.add(() -> super.visitFieldInsn(opcode, owner, name, desc));
+                        undo.add(() -> super.visitFieldInsn(GETFIELD, owner, name, "Lnet/minecraft/server/MinecraftServer;"));
                         return;
-                    } else if (state == -6 && opcode == GETFIELD && desc.equals("Ljava/lang/String;") && file.sources.login.owner.clazz.type.getInternalName().equals(owner)) {
-                        state = -7;
-                        mv.visitFieldInsn(
-                                GETFIELD,
-                                file.sources.connection.owner.clazz.type.getInternalName(),
-                                file.sources.connection.name,
-                                file.sources.connection.descriptor
-                        );
-                        mv.visitVarInsn(ALOAD, 0);
+                    } else if (state == 6 && opcode == GETFIELD && desc.equals("Ljava/lang/String;") && file.sources.login.owner.clazz.type.getInternalName().equals(owner)) {
+                        state = 7;
+                        undo.add(() -> super.visitFieldInsn(GETFIELD, owner, name, "Ljava/lang/String;"));
+                        return;
                     } else {
                         undo();
                     }
@@ -168,14 +176,27 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                         undo.clear();
                         state = 4;
                         return;
-                    } else if (state == -7 && opcode == INVOKESTATIC && desc.equals("(Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;")) {
-                        mv.visitMethodInsn(INVOKESTATIC,
+                    } else if (state == 7 && opcode == INVOKESTATIC && desc.equals("(Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;")) {
+                        mv.visitFieldInsn(GETSTATIC,
                                 "vanillacord/server/VanillaCord",
+                                "helper",
+                                "Lvanillacord/server/ForwardingHelper;"
+                        );
+                        mv.visitVarInsn(ALOAD, 0);
+                        mv.visitFieldInsn(
+                                GETFIELD,
+                                file.sources.connection.owner.clazz.type.getInternalName(),
+                                file.sources.connection.name,
+                                file.sources.connection.descriptor
+                        );
+                        undo();
+                        mv.visitMethodInsn(INVOKEVIRTUAL,
+                                "vanillacord/server/ForwardingHelper",
                                 "injectProfile",
                                 "(Ljava/lang/Object;Ljava/lang/String;)Lcom/mojang/authlib/GameProfile;",
                                 false
                         );
-                        state = -8;
+                        state = 8;
                         return;
                     } else {
                         undo();
@@ -186,7 +207,7 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                 @Override
                 public void visitJumpInsn(int opcode, Label label) {
                     if (state == 4 && opcode == IFEQ) {
-                        state = -5;
+                        state = 5;
                         skip = label;
                     } else {
                         undo();
@@ -196,9 +217,9 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
 
                 @Override
                 public void visitLabel(Label label) {
-                    if (state == -5 && skip == label) {
+                    if (state == 5 && skip == label) {
                         super.mv = mv;
-                        state = -6;
+                        state = 6;
                     }
                     super.visitLabel(label);
                 }
@@ -211,15 +232,20 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
 
                 @Override
                 public void visitEnd() {
-                    if (state >= 0) throw new IllegalStateException("Inject failed: 0x0" + state);
+                    if (state != 8 && state != 6) throw new IllegalStateException("Inject failed: 0x0" + state);
                     super.visitEnd();
                 }
 
                 private void undo() {
-                    if (state > 1) {
+                    byte s;
+                    if ((s = state) > 1 && s < 5) {
                         for (Runnable action : undo) action.run();
                         undo.clear();
                         state = 1;
+                    } else if (s > 5 && s < 8) {
+                        for (Runnable action : undo) action.run();
+                        undo.clear();
+                        state = 6;
                     }
                 }
             };

@@ -38,6 +38,11 @@ public class LoginPacket extends ClassVisitor implements Function<ClassVisitor, 
                     super.visitLabel(label);
                     if (prelabel) {
                         label = new Label();
+                        mv.visitFieldInsn(GETSTATIC,
+                                "vanillacord/server/VanillaCord",
+                                "helper",
+                                "Lvanillacord/server/ForwardingHelper;"
+                        );
                         mv.visitVarInsn(ALOAD, 1);
                         if (!file.sources.login.owner.clazz.type.equals(args[0])) {
                             mv.visitTypeInsn(CHECKCAST, file.sources.login.owner.clazz.type.getInternalName());
@@ -48,8 +53,8 @@ public class LoginPacket extends ClassVisitor implements Function<ClassVisitor, 
                                 file.sources.connection.descriptor
                         );
                         mv.visitVarInsn(ALOAD, 0);
-                        mv.visitMethodInsn(INVOKESTATIC,
-                                "vanillacord/server/VanillaCord",
+                        mv.visitMethodInsn(INVOKEVIRTUAL,
+                                "vanillacord/server/ForwardingHelper",
                                 "initializeTransaction",
                                 "(Ljava/lang/Object;Ljava/lang/Object;)Z",
                                 false
