@@ -3,7 +3,7 @@ package vanillacord.data;
 import bridge.asm.KnownType;
 import org.objectweb.asm.Type;
 
-public class MethodData {
+public final class MethodData {
     public final ClassData owner;
     public final int access;
     public final String name, descriptor, signature;
@@ -16,9 +16,9 @@ public class MethodData {
         this.access = access;
         this.name = name;
         this.descriptor = descriptor;
-        this.arguments = owner.types.load(desc.getArgumentTypes());
-        this.returns = owner.types.load(desc.getReturnType());
-        this.exceptions = owner.types.loadClass(exceptions);
+        this.arguments = owner.map.load(desc.getArgumentTypes());
+        this.returns = owner.map.load(desc.getReturnType());
+        this.exceptions = owner.map.loadClass(exceptions);
         this.signature = signature;
     }
 }

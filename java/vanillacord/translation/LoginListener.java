@@ -15,7 +15,8 @@ import static org.objectweb.asm.Opcodes.*;
 import static vanillacord.translation.Translations.VCT_CLASS;
 import static vanillacord.translation.Translations.VCT_METHOD;
 
-public class LoginListener {
+public final class LoginListener {
+    private LoginListener() {}
 
     public static void translate(Package file, ZipOutputStream stream) throws IOException {
         HierarchicalWriter cv = new HierarchicalWriter(file.types, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);

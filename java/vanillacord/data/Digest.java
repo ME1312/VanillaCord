@@ -1,6 +1,6 @@
 package vanillacord.data;
 
-public class Digest {
+public final class Digest {
     private Digest() {}
 
     public static boolean equals(byte[] digest, String target) {

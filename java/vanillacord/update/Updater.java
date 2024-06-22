@@ -33,10 +33,10 @@ public class Updater {
         }
     }
 
-    public void update(String file, ZipOutputStream zos) throws IOException {
+    public void update(String file, ZipOutputStream zos, byte[] buffer) throws IOException {
         zos.putNextEntry(new ZipEntry(file));
         if (updates == null) {
-            Patcher.copy(source.getResourceAsStream(file), zos);
+            Patcher.copy(source.getResourceAsStream(file), zos, buffer);
         } else {
             ClassReader reader = new ClassReader(source.getResourceAsStream(file));
             ClassWriter writer = new HierarchicalWriter(this.file.types, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);

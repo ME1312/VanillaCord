@@ -4,9 +4,16 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import vanillacord.data.Digest;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -51,11 +58,11 @@ public final class Downloader {
             System.out.println();
 
             Downloader downloads = null;
-            File library = new File("in");
+            FileSystem system;
+            Path library = (system = FileSystems.getDefault()).getPath("in");
             for (int i = 0; i != args.length;) {
-                String version = args[i] = args[i++].toLowerCase(Locale.ENGLISH);
-                File in = new File(library, version + ".jar");
-                if (!in.exists()) {
+                String version;
+                if (!Files.exists(library.resolve((version = args[i] = args[i++].toLowerCase(Locale.ENGLISH)) + ".jar"))) {
                     if (downloads == null) downloads = new Downloader();
                     if (downloads.find(version) == null) {
                         System.err.print("Cannot find version metadata online for Minecraft ");
@@ -65,12 +72,12 @@ public final class Downloader {
                 }
             }
 
-            File output = new File("out");
+            Path parent = system.getPath("out");
             for (String version : args) {
-                File in = new File(library, version + ".jar");
-                File out = new File(output, version + ".jar");
+                Path in = library.resolve(version + ".jar");
+                Path out = parent.resolve(version + ".jar");
 
-                if (in.exists()) {
+                if (Files.exists(in)) {
                     System.out.print("Using local Minecraft server version ");
                     System.out.println(version);
                 } else {
@@ -81,13 +88,17 @@ public final class Downloader {
                     }
                     System.out.print("Downloading Minecraft server version ");
                     System.out.println(version);
-                    library.mkdirs();
+                    Files.createDirectories(library);
 
-                    URLConnection connection = new URL(location.getString("url")).openConnection();
-                    int length = connection.getContentLength();
-                    byte[] digest, data = new byte[length];
+                    URLConnection connection;
+                    int i = 0, length;
+                    byte[] digest, data = new byte[length = (connection = new URL(location.getString("url")).openConnection()).getContentLength()];
                     try (InputStream stream = connection.getInputStream()) {
-                        for (int b, i = 0; i < length && (b = stream.read(data, i, length - i)) != -1; i += b);
+                        for (int b; i < length && (b = stream.read(data, i, length - i)) != -1; i += b);
+                    }
+
+                    if (i != length) {
+                        throw new IllegalStateException("Downloaded profile is not as expected: File size: " + i + " != " + length);
                     }
 
                     MessageDigest sha1;
@@ -96,27 +107,31 @@ public final class Downloader {
                         throw new IllegalStateException("Downloaded profile is not as expected: SHA-1 checksum: " + Digest.toHex(digest) + " != " + location.getString("sha1"));
                     }
 
-                    JSONObject profile = (JSONObject) ((JSONObject) JSON.parseObject(data).get("downloads")).get("server");
-                    try (FileOutputStream file = new FileOutputStream(in, false); InputStream stream = new URL(profile.getString("url")).openStream()) {
+                    JSONObject profile;
+                    try (
+                            OutputStream file = Files.newOutputStream(in);
+                            InputStream stream = new URL((profile = (JSONObject) ((JSONObject) JSON.parseObject(data).get("downloads")).get("server")).getString("url")).openStream()
+                    ) {
                         data = new byte[8192];
-                        for (int i; (i = stream.read(data)) != -1;) {
+                        while ((i = stream.read(data)) != -1) {
                             file.write(data, 0, i);
                             sha1.update(data, 0, i);
                         }
 
                         file.close();
-                        if (in.length() != profile.getLong("size")) {
-                            throw new IllegalStateException("Downloaded jarfile is not as expected: File size: " + in.length() + " != " + profile.getLong("size"));
-                        } else if (!Digest.equals(digest = sha1.digest(), profile.getString("sha1"))) {
+                        if (Files.size(in) != profile.getLong("size")) {
+                            throw new IllegalStateException("Downloaded jarfile is not as expected: File size: " + Files.size(in) + " != " + profile.getLong("size"));
+                        }
+                        if (!Digest.equals(digest = sha1.digest(), profile.getString("sha1"))) {
                             throw new IllegalStateException("Downloaded jarfile is not as expected: SHA-1 checksum: " + Digest.toHex(digest) + " != " + profile.getString("sha1"));
                         }
                     } catch (Throwable e) {
-                        in.delete();
+                        Files.deleteIfExists(in);
                         throw e;
                     }
                 }
 
-                output.mkdir();
+                Files.createDirectories(parent);
                 Patcher.patch(in, out);
                 if (multiple) System.out.println();
             }

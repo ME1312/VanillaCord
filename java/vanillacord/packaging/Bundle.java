@@ -9,6 +9,8 @@ import vanillacord.data.SourceScanner;
 import java.io.*;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -24,7 +26,7 @@ public class Bundle extends Package {
     private final HashSet<String> unique = new HashSet<>();
     private final String format;
     private String[] server;
-    private File file;
+    private Path path;
 
     public Bundle(String format) {
         this.format = format;
@@ -60,8 +62,8 @@ public class Bundle extends Package {
     }
 
     @Override
-    public ZipInputStream read(File file) throws Throwable {
-        URLClassLoader bundle = new URLClassLoader(new URL[]{ (this.file = file).toURI().toURL() }, null);
+    public ZipInputStream read(Path path) throws Throwable {
+        URLClassLoader bundle = new URLClassLoader(new URL[] {(this.path = path).toUri().toURL()}, null);
         load(bundle, "libraries", reader -> reader.accept(new HierarchyScanner(types), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
         List<String[]> versions = load(bundle, "versions", reader -> reader.accept(new SourceScanner(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
         if (versions.size() != 1) throw new IllegalStateException("More or less than one version was distributed");
@@ -69,22 +71,22 @@ public class Bundle extends Package {
     }
 
     @Override
-    public ZipOutputStream write(File file) throws Throwable {
+    public ZipOutputStream write(Path path) throws Throwable {
         if (server == null) throw new IllegalStateException("Called to write() before read()");
-        ZipInputStream zis = new ZipInputStream(new FileInputStream(this.file));
-        ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(file, false));
+        ZipInputStream zis = new ZipInputStream(Files.newInputStream(this.path));
+        ZipOutputStream zos = new ZipOutputStream(Files.newOutputStream(path));
         MessageDigest sha256 = MessageDigest.getInstance("SHA-256");
         HashSet<String> unique = new HashSet<>();
-
+        final byte[] buffer = new byte[8192];
         for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
-            if (unique.add(entry.getName()) && patch(zis, zos, entry.getName())) {
+            if (unique.add(entry.getName()) && patch(zis, zos, buffer, entry.getName())) {
                 return new ZipOutputStream(new OutputStream() {
 
                     @Override
                     public void close() throws IOException {
                         Bundle.this.close(zos, sha256.digest());
                         for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
-                            if (unique.add(entry.getName())) patch(zis, zos, entry.getName());
+                            if (unique.add(entry.getName())) patch(zis, zos, buffer, entry.getName());
                         }
                         zis.close();
                         zos.close();
@@ -113,7 +115,7 @@ public class Bundle extends Package {
         throw new IllegalStateException("Server jarfile disappeared");
     }
 
-    boolean patch(ZipInputStream zis, ZipOutputStream zos, String entry) throws IOException {
+    boolean patch(ZipInputStream zis, ZipOutputStream zos, byte[] buffer, String entry) throws IOException {
         if (entry.equals("META-INF/MANIFEST.MF")) {
             zos.putNextEntry(new ZipEntry(entry));
             Patcher.manifest(zis, zos);
@@ -122,7 +124,7 @@ public class Bundle extends Package {
             return true;
         } else if (!entry.equals("META-INF/versions.list") && (!entry.startsWith("META-INF/") || !entry.endsWith(".SF"))) {
             zos.putNextEntry(new ZipEntry(entry));
-            Patcher.copy(zis, zos);
+            Patcher.copy(zis, zos, buffer);
         }
         return false;
     }

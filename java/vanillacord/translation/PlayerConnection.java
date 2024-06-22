@@ -17,7 +17,7 @@ import static bridge.asm.Types.push;
 import static org.objectweb.asm.Opcodes.*;
 import static vanillacord.translation.Translations.*;
 
-public class PlayerConnection {
+public final class PlayerConnection {
     private PlayerConnection() {}
 
     public static void translate(Package file, ZipOutputStream stream) throws IOException {

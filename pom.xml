@@ -26,14 +26,14 @@
     </pluginRepositories>
 
     <properties>
-        <bridge.version>24w11a</bridge.version>
+        <bridge.version>24w25a</bridge.version>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>com.alibaba.fastjson2</groupId>
             <artifactId>fastjson2</artifactId>
-            <version>2.0.43</version>
+            <version>2.0.51</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -51,7 +51,7 @@
         <dependency>
             <groupId>org.ow2.asm</groupId>
             <artifactId>asm</artifactId>
-            <version>9.6</version>
+            <version>9.7</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -84,6 +84,7 @@
                 <configuration>
                     <source>8</source>
                     <target>8</target>
+                    <parameters>true</parameters>
                 </configuration>
             </plugin>
             <plugin>

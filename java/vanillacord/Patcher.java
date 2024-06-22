@@ -4,7 +4,6 @@ import bridge.asm.HierarchicalWriter;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.Type;
 import vanillacord.packaging.Bundle;
 import vanillacord.packaging.FatJar;
 import vanillacord.packaging.Package;
@@ -12,6 +11,10 @@ import vanillacord.patch.*;
 import vanillacord.update.Updater;
 
 import java.io.*;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Function;
@@ -24,12 +27,13 @@ import java.util.zip.ZipOutputStream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-public class Patcher {
+public final class Patcher {
     public static final String brand;
+    private Patcher() {}
 
     static {
         String build;
-        StringBuilder version = new StringBuilder("VanillaCord 2.0");
+        StringBuilder version = new StringBuilder().append("VanillaCord 2.0");
         try {
             if ((build = new Manifest(Patcher.class.getResourceAsStream("/META-INF/MANIFEST.MF")).getMainAttributes().getValue("Implementation-Version")) != null && build.length() != 0) {
                 version.append(' ').append('(').append(build).append(')');
@@ -45,14 +49,16 @@ public class Patcher {
         }
         System.out.println(Patcher.brand);
         try {
-            File in = new File(args[0]);
-            if (!in.isFile()) {
+            FileSystem system;
+            Path in;
+            if (!Files.exists(in = (system = FileSystems.getDefault()).getPath(args[0]))) {
                 System.err.println("Couldn't find input file: " + args[0]);
                 System.exit(1);
             }
 
-            File out = new File(args[1]);
-            if (!out.getParentFile().exists()) {
+            Path parent;
+            Path out;
+            if ((parent = (out = system.getPath(args[1])).toRealPath().getParent()) == null || !Files.isDirectory(parent)) {
                 System.err.println("Couldn't find output location: " + args[1]);
                 System.exit(1);
             }
@@ -64,9 +70,9 @@ public class Patcher {
         }
     }
 
-    static void patch(File in, File out) throws Throwable {
+    static void patch(Path in, Path out) throws Throwable {
         final Package file;
-        try (ZipInputStream stream = new ZipInputStream(new FileInputStream(in))) {
+        try (ZipInputStream stream = new ZipInputStream(Files.newInputStream(in))) {
             for (ZipEntry entry;;) {
                 if ((entry = stream.getNextEntry()) == null) {
                     throw new FileNotFoundException("MANIFEST.MF");
@@ -103,6 +109,7 @@ public class Patcher {
 
             String name;
             HashSet<String> unique = new HashSet<>();
+            final byte[] buffer = new byte[8192];
             for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
                 if (!unique.add(name = entry.getName())) {
                     continue;
@@ -124,7 +131,7 @@ public class Patcher {
                     continue;
                 }
                 zos.putNextEntry(entry);
-                copy(zis, zos);
+                copy(zis, zos, buffer);
             }
 
             ClassLoader vccl = Patcher.class.getClassLoader();
@@ -133,23 +140,23 @@ public class Patcher {
             zos.putNextEntry(new ZipEntry("vanillacord/"));
             zos.putNextEntry(new ZipEntry("vanillacord/server/"));
             zos.putNextEntry(new ZipEntry("vanillacord/server/VanillaCord.class"));
-            copy(vccl.getResourceAsStream("vanillacord/server/VanillaCord.class"), zos);
+            copy(vccl.getResourceAsStream("vanillacord/server/VanillaCord.class"), zos, buffer);
 
             zos.putNextEntry(new ZipEntry("vanillacord/server/QuietException.class"));
-            copy(vccl.getResourceAsStream("vanillacord/server/QuietException.class"), zos);
+            copy(vccl.getResourceAsStream("vanillacord/server/QuietException.class"), zos, buffer);
 
             zos.putNextEntry(new ZipEntry("vanillacord/server/ForwardingHelper.class"));
-            copy(vccl.getResourceAsStream("vanillacord/server/ForwardingHelper.class"), zos);
+            copy(vccl.getResourceAsStream("vanillacord/server/ForwardingHelper.class"), zos, buffer);
 
             Updater updater = new Updater(vccl, file);
-            updater.update("vanillacord/server/BungeeHelper.class", zos);
+            updater.update("vanillacord/server/BungeeHelper.class", zos, buffer);
 
             zos.putNextEntry(new ZipEntry("vanillacord/translation/"));
             vanillacord.translation.PlayerConnection.translate(file, zos);
             vanillacord.translation.HandshakePacket.translate(file, zos);
 
             if (file.sources.receive != null) { // 1.13+
-                updater.update("vanillacord/server/VelocityHelper.class", zos);
+                updater.update("vanillacord/server/VelocityHelper.class", zos, buffer);
                 vanillacord.translation.LoginListener.translate(file, zos);
                 vanillacord.translation.LoginExtension.translate(file, zos);
                 vanillacord.translation.NamespacedKey.translate(file, zos);
@@ -159,10 +166,9 @@ public class Patcher {
         }
     }
 
-    public static void copy(InputStream in, OutputStream out) throws IOException {
-        byte[] data = new byte[8192];
-        for (int i; (i = in.read(data)) != -1;) {
-            out.write(data, 0, i);
+    public static void copy(InputStream in, OutputStream out, byte[] buffer) throws IOException {
+        for (int i; (i = in.read(buffer)) != -1;) {
+            out.write(buffer, 0, i);
         }
     }
 

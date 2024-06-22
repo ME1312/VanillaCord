@@ -1,31 +1,34 @@
 package vanillacord.server;
 
 import bridge.Unchecked;
-import com.mojang.authlib.GameProfile;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.Locale;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @SuppressWarnings("SpellCheckingInspection")
-public class VanillaCord {
+public final class VanillaCord {
     public static final ForwardingHelper helper;
+    private VanillaCord() {}
 
     static {
-        final File file = new File("vanillacord.txt");
+        final Path file = FileSystems.getDefault().getPath("vanillacord.txt");
         double version = 0;
         String forwarding = "bungeecord";
         LinkedList<String> seecrets = new LinkedList<>();
 
         try {
-            if (file.isFile()) {
-                try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(file), UTF_8))) {
+            if (Files.exists(file)) {
+                try (BufferedReader reader = Files.newBufferedReader(file, UTF_8)) {
                     for (String line; (line = reader.readLine()) != null;) {
                         int start, end;
                         if (line.lastIndexOf('#', 0) != 0 && (start = line.indexOf('=')) >= 0) {
@@ -49,7 +52,7 @@ public class VanillaCord {
             }
 
             if (version < 2) {
-                try (PrintWriter writer = new PrintWriter(new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file, false), UTF_8)))) {
+                try (PrintWriter writer = new PrintWriter(Files.newBufferedWriter(file, UTF_8))) {
                     writer.println("# Welcome to the VanillaCord configuration.");
                     writer.println("version = 2.0");
                     writer.println();
@@ -93,9 +96,5 @@ public class VanillaCord {
         } catch (Throwable e) {
             throw new Unchecked(e);
         }
-    }
-
-    private VanillaCord() {
-        // this constructor is never called
     }
 }

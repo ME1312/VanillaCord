@@ -3,7 +3,7 @@ package vanillacord.packaging;
 import bridge.asm.TypeMap;
 import vanillacord.data.Sources;
 
-import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.function.Function;
 import java.util.zip.ZipInputStream;
@@ -15,6 +15,6 @@ public abstract class Package {
     public final TypeMap types = new TypeMap();
     Package() {}
 
-    public abstract ZipInputStream read(File file) throws Throwable;
-    public abstract ZipOutputStream write(File file) throws Throwable;
+    public abstract ZipInputStream read(Path path) throws Throwable;
+    public abstract ZipOutputStream write(Path path) throws Throwable;
 }

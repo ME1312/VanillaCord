@@ -18,7 +18,8 @@ import static bridge.asm.Types.*;
 import static org.objectweb.asm.Opcodes.*;
 import static vanillacord.translation.Translations.*;
 
-public class LoginExtension {
+public final class LoginExtension {
+    private LoginExtension() {}
 
     public static void translate(Package file, ZipOutputStream stream) throws IOException {
         HierarchicalWriter cv = new HierarchicalWriter(file.types, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -35,7 +36,7 @@ public class LoginExtension {
 
         if (file.sources.receive.owner.clazz.extended(file.types.loadClass("java/lang/Record"))) {
             ClassData send = null;
-            file.sources.namespace = (ClassData) file.sources.send.arguments[0].data();
+            ClassData namespace = file.sources.namespace = (ClassData) file.sources.send.arguments[0].data();
             for (FieldData field : file.sources.send.owner.fields.values()) {
                 if ((field.access & (ACC_STATIC | ACC_FINAL)) == ACC_FINAL && !field.type.isPrimitive()) {
                     send = (ClassData) field.type.data();
@@ -43,37 +44,36 @@ public class LoginExtension {
                 }
             }
 
-            String inner = type + "$1";
-            cv.visit(V1_8, VCT_CLASS & ~ACC_PUBLIC, inner, null, "java/lang/Object", new String[] { send.clazz.type.getInternalName() });
+            String namespaced, inner = type + "$1";
+            cv.visit(V1_8, VCT_CLASS & ~ACC_PUBLIC, inner, null, "java/lang/Object", new String[] {send.clazz.type.getInternalName()});
             cv.visitOuterClass(type, "send", "(Ljava/lang/Object;ILjava/lang/Object;Lio/netty/buffer/ByteBuf;)V");
             cv.visitInnerClass(inner, null, null, 0);
-            cv.visitField(VCT_FIELD & ~ACC_STATIC, "ns", file.sources.namespace.clazz.type.getDescriptor(), null, null);
+            cv.visitField(VCT_FIELD & ~ACC_STATIC, "ns", namespaced = namespace.clazz.type.getDescriptor(), null, null);
             cv.visitField(VCT_FIELD & ~ACC_STATIC, "data", "Lio/netty/buffer/ByteBuf;", null, null);
 
-            MethodVisitor mv = cv.visitMethod(ACC_SYNTHETIC, "<init>", "(Ljava/lang/Object;Lio/netty/buffer/ByteBuf;)V", null, null); {
+            MethodVisitor mv = cv.visitMethod(ACC_SYNTHETIC, "<init>", '(' + namespaced + "Lio/netty/buffer/ByteBuf;)V", null, null); {
                 mv.visitCode();
                 mv.visitLabel(new Label());
                 mv.visitVarInsn(ALOAD, 0);
                 mv.visitInsn(DUP);
-                mv.visitMethodInsn(INVOKESPECIAL,
-                        "java/lang/Object",
-                        "<init>",
-                        "()V",
-                        false
-                );
-                mv.visitInsn(DUP);
                 mv.visitVarInsn(ALOAD, 1);
-                mv.visitTypeInsn(CHECKCAST, file.sources.namespace.clazz.type.getInternalName());
                 mv.visitFieldInsn(PUTFIELD,
                         inner,
                         "ns",
-                        file.sources.namespace.clazz.type.getDescriptor()
+                        namespaced
                 );
+                mv.visitInsn(DUP);
                 mv.visitVarInsn(ALOAD, 2);
                 mv.visitFieldInsn(PUTFIELD,
                         inner,
                         "data",
                         "Lio/netty/buffer/ByteBuf;"
+                );
+                mv.visitMethodInsn(INVOKESPECIAL,
+                        "java/lang/Object",
+                        "<init>",
+                        "()V",
+                        false
                 );
                 mv.visitInsn(RETURN);
                 mv.visitMaxs(0, 0);
@@ -82,7 +82,7 @@ public class LoginExtension {
 
             for (MethodData method : send.methods.values()) {
                 if ((method.access & ACC_ABSTRACT) != 0) {
-                    if (method.arguments.length == 0 && method.returns.equals(file.sources.namespace.clazz)) {
+                    if (method.arguments.length == 0 && method.returns.equals(namespace.clazz)) {
                         mv = cv.visitMethod(VCT_METHOD & ~ACC_STATIC, method.name, method.descriptor, null, null); {
                             mv.visitCode();
                             mv.visitLabel(new Label());
@@ -90,7 +90,7 @@ public class LoginExtension {
                             mv.visitFieldInsn(GETFIELD,
                                     inner,
                                     "ns",
-                                    file.sources.namespace.clazz.type.getDescriptor()
+                                    namespaced
                             );
                             mv.visitInsn(ARETURN);
                             mv.visitMaxs(0, 0);
@@ -150,7 +150,7 @@ public class LoginExtension {
             }
 
             cv = new HierarchicalWriter(file.types, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
-            cv.visit(V1_8, VCT_CLASS, type, null, "java/lang/Object", new String[] { receive.clazz.type.getInternalName() });
+            cv.visit(V1_8, VCT_CLASS, type, null, "java/lang/Object", new String[] {receive.clazz.type.getInternalName()});
             cv.visitInnerClass(inner, null, null, 0);
             cv.visitField(VCT_FIELD & ~ACC_STATIC, "data", "Lio/netty/buffer/ByteBuf;", null, null);
 
@@ -200,11 +200,12 @@ public class LoginExtension {
                 mv.visitTypeInsn(NEW, inner);
                 mv.visitInsn(DUP);
                 mv.visitVarInsn(ALOAD, 2);
+                mv.visitTypeInsn(CHECKCAST, namespace.clazz.type.getInternalName());
                 mv.visitVarInsn(ALOAD, 3);
                 mv.visitMethodInsn(INVOKESPECIAL,
                         inner,
                         "<init>",
-                        "(Ljava/lang/Object;Lio/netty/buffer/ByteBuf;)V",
+                        '(' + namespaced + "Lio/netty/buffer/ByteBuf;)V",
                         false
                 );
                 mv.visitMethodInsn(INVOKESPECIAL,
@@ -297,8 +298,7 @@ public class LoginExtension {
             }
         }
 
-        MethodVisitor mv = cv.visitMethod(VCT_METHOD, "getTransactionID", "(Ljava/lang/Object;)I", null, null);
-        {
+        MethodVisitor mv = cv.visitMethod(VCT_METHOD, "getTransactionID", "(Ljava/lang/Object;)I", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
             mv.visitVarInsn(ALOAD, 0);
@@ -314,8 +314,7 @@ public class LoginExtension {
             mv.visitEnd();
         }
 
-        mv = cv.visitMethod(VCT_METHOD, "getData", "(Ljava/lang/Object;)Lio/netty/buffer/ByteBuf;", null, null);
-        {
+        mv = cv.visitMethod(VCT_METHOD, "getData", "(Ljava/lang/Object;)Lio/netty/buffer/ByteBuf;", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
             mv.visitVarInsn(ALOAD, 0);
@@ -380,8 +379,7 @@ public class LoginExtension {
         cv.visitField(VCT_FIELD, "getID", "Ljava/lang/invoke/MethodHandle;", null, null);
         cv.visitField(VCT_FIELD, "getData", "Ljava/lang/invoke/MethodHandle;", null, null);
 
-        MethodVisitor mv = cv.visitMethod(ACC_STATIC | ACC_SYNTHETIC, "<clinit>", "()V", null, null);
-        {
+        MethodVisitor mv = cv.visitMethod(ACC_STATIC | ACC_SYNTHETIC, "<clinit>", "()V", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
             mv.visitMethodInsn(INVOKESTATIC,
@@ -533,10 +531,22 @@ public class LoginExtension {
             mv.visitMaxs(0, 0);
             mv.visitEnd();
         }
-        mv = cv.visitMethod(VCT_METHOD, "send", "(Ljava/lang/Object;ILjava/lang/Object;Lio/netty/buffer/ByteBuf;)V", null, null);
-        {
+
+        mv = cv.visitMethod(VCT_METHOD, "send", "(Ljava/lang/Object;ILjava/lang/Object;Lio/netty/buffer/ByteBuf;)V", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
+            mv.visitVarInsn(ALOAD, 0);
+            mv.visitTypeInsn(CHECKCAST, connection.owner.clazz.type.getInternalName());
+            mv.visitFieldInsn(GETSTATIC,
+                    type,
+                    "setData",
+                    "Ljava/lang/invoke/MethodHandle;"
+            );
+            mv.visitFieldInsn(GETSTATIC,
+                    type,
+                    "setNamespace",
+                    "Ljava/lang/invoke/MethodHandle;"
+            );
             mv.visitFieldInsn(GETSTATIC,
                     type,
                     "setID",
@@ -550,8 +560,7 @@ public class LoginExtension {
                     "()V",
                     false
             );
-            mv.visitInsn(DUP);
-            mv.visitVarInsn(ASTORE, 4);
+            mv.visitInsn(DUP_X1);
             mv.visitVarInsn(ILOAD, 1);
             mv.visitMethodInsn(INVOKEVIRTUAL,
                     "java/lang/invoke/MethodHandle",
@@ -559,12 +568,7 @@ public class LoginExtension {
                     '(' + file.sources.send.owner.clazz.type.getDescriptor() + "I)V",
                     false
             );
-            mv.visitFieldInsn(GETSTATIC,
-                    type,
-                    "setNamespace",
-                    "Ljava/lang/invoke/MethodHandle;"
-            );
-            mv.visitVarInsn(ALOAD, 4);
+            mv.visitInsn(DUP_X1);
             mv.visitVarInsn(ALOAD, 2);
             mv.visitTypeInsn(CHECKCAST, file.sources.namespace.clazz.type.getInternalName());
             mv.visitMethodInsn(INVOKEVIRTUAL,
@@ -573,12 +577,7 @@ public class LoginExtension {
                     '(' + file.sources.send.owner.clazz.type.getDescriptor() + file.sources.namespace.clazz.type.getDescriptor() + ")V",
                     false
             );
-            mv.visitFieldInsn(GETSTATIC,
-                    type,
-                    "setData",
-                    "Ljava/lang/invoke/MethodHandle;"
-            );
-            mv.visitVarInsn(ALOAD, 4);
+            mv.visitInsn(DUP_X1);
             mv.visitTypeInsn(NEW, buffer.clazz.type.getInternalName());
             mv.visitInsn(DUP);
             mv.visitVarInsn(ALOAD, 3);
@@ -594,9 +593,6 @@ public class LoginExtension {
                     '(' + file.sources.send.owner.clazz.type.getDescriptor() + buffer.clazz.type.getDescriptor() + ")V",
                     false
             );
-            mv.visitVarInsn(ALOAD, 0);
-            mv.visitTypeInsn(CHECKCAST, connection.owner.clazz.type.getInternalName());
-            mv.visitVarInsn(ALOAD, 4);
             mv.visitMethodInsn(INVOKEVIRTUAL,
                     connection.owner.clazz.type.getInternalName(),
                     connection.name,
@@ -608,8 +604,7 @@ public class LoginExtension {
             mv.visitEnd();
         }
 
-        mv = cv.visitMethod(VCT_METHOD, "getTransactionID", "(Ljava/lang/Object;)I", null, null);
-        {
+        mv = cv.visitMethod(VCT_METHOD, "getTransactionID", "(Ljava/lang/Object;)I", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
             mv.visitFieldInsn(GETSTATIC,
@@ -630,8 +625,7 @@ public class LoginExtension {
             mv.visitEnd();
         }
 
-        mv = cv.visitMethod(VCT_METHOD, "getData", "(Ljava/lang/Object;)Lio/netty/buffer/ByteBuf;", null, null);
-        {
+        mv = cv.visitMethod(VCT_METHOD, "getData", "(Ljava/lang/Object;)Lio/netty/buffer/ByteBuf;", null, null); {
             mv.visitCode();
             mv.visitLabel(new Label());
             mv.visitFieldInsn(GETSTATIC,

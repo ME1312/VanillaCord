@@ -3,7 +3,7 @@ package vanillacord.server;
 import java.io.PrintStream;
 import java.io.PrintWriter;
 
-public class QuietException extends RuntimeException {
+public final class QuietException extends RuntimeException {
     QuietException(String text) {
         super(text);
         this.e = null;

@@ -18,7 +18,8 @@ import static bridge.asm.Types.push;
 import static org.objectweb.asm.Opcodes.*;
 import static vanillacord.translation.Translations.*;
 
-public class HandshakePacket {
+public final class HandshakePacket {
+    private HandshakePacket() {}
 
     public static void translate(Package file, ZipOutputStream stream) throws IOException {
         HierarchicalWriter cv = new HierarchicalWriter(file.types, ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
