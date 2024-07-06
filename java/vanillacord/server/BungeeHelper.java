@@ -37,7 +37,7 @@ public class BungeeHelper extends ForwardingHelper {
                 throw QuietException.show("If you wish to use IP forwarding, please enable it in your BungeeCord config as well!");
             }
 
-        //  split[0]; // we don't do anything with the server address
+        //  split[0]; // we don't do anything with the server address at this time
             new Invocation(PlayerConnection.class).ofMethod("setAddress").with(connection).with(split[1]).invoke();
             channel.attr(UUID_KEY).set(new UUID(
                     Long.parseUnsignedLong(uuid.substring( 0, 16), 16),

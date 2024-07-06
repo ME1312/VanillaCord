@@ -66,7 +66,7 @@ public class Bundle extends Package {
         URLClassLoader bundle = new URLClassLoader(new URL[] {(this.path = path).toUri().toURL()}, null);
         load(bundle, "libraries", reader -> reader.accept(new HierarchyScanner(types), ClassReader.SKIP_CODE | ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
         List<String[]> versions = load(bundle, "versions", reader -> reader.accept(new SourceScanner(this), ClassReader.SKIP_FRAMES | ClassReader.SKIP_DEBUG));
-        if (versions.size() != 1) throw new IllegalStateException("More or less than one version was distributed");
+        if (versions.size() != 1) throw new IllegalStateException(((versions.size() != 0)? "Multiple" : "No") + " versions were distributed");
         return new ZipInputStream(bundle.getResourceAsStream("META-INF/versions/" + (server = versions.get(0))[2]));
     }
 
@@ -79,14 +79,14 @@ public class Bundle extends Package {
         HashSet<String> unique = new HashSet<>();
         final byte[] buffer = new byte[8192];
         for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
-            if (unique.add(entry.getName()) && patch(zis, zos, buffer, entry.getName())) {
+            if (unique.add(entry.getName()) && patch(zis, zos, buffer, entry)) {
                 return new ZipOutputStream(new OutputStream() {
 
                     @Override
                     public void close() throws IOException {
                         Bundle.this.close(zos, sha256.digest());
                         for (ZipEntry entry; (entry = zis.getNextEntry()) != null;) {
-                            if (unique.add(entry.getName())) patch(zis, zos, buffer, entry.getName());
+                            if (unique.add(entry.getName())) patch(zis, zos, buffer, entry);
                         }
                         zis.close();
                         zos.close();
@@ -100,8 +100,9 @@ public class Bundle extends Package {
 
                     @Override
                     public void write(byte[] b) throws IOException {
-                        zos.write(b);
-                        sha256.update(b);
+                        int len;
+                        zos.write(b, 0, len = b.length);
+                        sha256.update(b, 0, len);
                     }
 
                     @Override
@@ -115,15 +116,16 @@ public class Bundle extends Package {
         throw new IllegalStateException("Server jarfile disappeared");
     }
 
-    boolean patch(ZipInputStream zis, ZipOutputStream zos, byte[] buffer, String entry) throws IOException {
-        if (entry.equals("META-INF/MANIFEST.MF")) {
-            zos.putNextEntry(new ZipEntry(entry));
+    boolean patch(ZipInputStream zis, ZipOutputStream zos, byte[] buffer, ZipEntry entry) throws IOException {
+        final String name;
+        if ((name = entry.getName()).equals("META-INF/MANIFEST.MF")) {
+            zos.putNextEntry(new ZipEntry(name));
             Patcher.manifest(zis, zos);
-        } else if (entry.equals("META-INF/versions/" + server[2])) {
-            zos.putNextEntry(new ZipEntry(entry));
+        } else if (name.equals("META-INF/versions/" + server[2])) {
+            zos.putNextEntry(new ZipEntry(name));
             return true;
-        } else if (!entry.equals("META-INF/versions.list") && (!entry.startsWith("META-INF/") || !entry.endsWith(".SF"))) {
-            zos.putNextEntry(new ZipEntry(entry));
+        } else if (!name.equals("META-INF/versions.list") && (!name.startsWith("META-INF/") || !name.endsWith(".SF"))) {
+            zos.putNextEntry(entry);
             Patcher.copy(zis, zos, buffer);
         }
         return false;

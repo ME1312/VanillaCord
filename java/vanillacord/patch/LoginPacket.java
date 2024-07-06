@@ -65,6 +65,12 @@ public class LoginPacket extends ClassVisitor implements Function<ClassVisitor, 
                         prelabel = false;
                     }
                 }
+
+                @Override
+                public void visitEnd() {
+                    super.visitEnd();
+                    if (prelabel) throw new IllegalStateException("Hook failed");
+                }
             };
         }
         return super.visitMethod(access, name, descriptor, signature, exceptions);

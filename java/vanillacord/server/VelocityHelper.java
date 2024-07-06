@@ -42,8 +42,10 @@ public class VelocityHelper extends ForwardingHelper {
     public boolean initializeTransaction(Object connection, Object intercepted) {
         try {
             Channel channel = new Invocation(PlayerConnection.class).ofMethod("getChannel").with(connection).invoke();
-            if (channel.attr(LOGIN_KEY).get() != null || channel.attr(PROFILE_KEY).get() != null) {
+            if (channel.attr(LOGIN_KEY).get() != null)
                 throw new IllegalStateException("Unexpected login request");
+            if (channel.attr(PROFILE_KEY).get() != null) {
+                return false;
             }
 
             // Send the packet
@@ -66,7 +68,7 @@ public class VelocityHelper extends ForwardingHelper {
             Channel channel = new Invocation(PlayerConnection.class).ofMethod("getChannel").with(connection).invoke();
             Object intercepted = channel.attr(LOGIN_KEY).get();
             if (intercepted == null) {
-                throw new IllegalStateException("Unexpected login response");
+                return false;
             }
 
             // Check the metadata
@@ -82,14 +84,14 @@ public class VelocityHelper extends ForwardingHelper {
             }
 
             // Retrieve IP forwarding data
-            readVarInt(data); // we don't do anything with the protocol version at this time
+            readVarint(data); // we don't do anything with the protocol version at this time
 
             new Invocation(PlayerConnection.class).ofMethod("setAddress").with(connection).with(readString(data)).invoke();
             GameProfile profile = new GameProfile(new UUID(data.readLong(), data.readLong()), readString(data));
             channel.attr(PROFILE_KEY).set(profile);
 
             PropertyMap properties = profile.getProperties();
-            for (int i = 0, length = readVarInt(data); i < length; ++i) {
+            for (int i = 0, length = readVarint(data); i < length; ++i) {
                 final String name = readString(data);
                 properties.put(name, new Property(name, readString(data), (data.readBoolean())? readString(data) : null));
             }
@@ -137,7 +139,7 @@ public class VelocityHelper extends ForwardingHelper {
     }
 
     private static String readString(ByteBuf buf) {
-        int len = readVarInt(buf);
+        int len = readVarint(buf);
         if (len > Short.MAX_VALUE * 3) {
             throw new RuntimeException("String is too long");
         }
@@ -151,7 +153,7 @@ public class VelocityHelper extends ForwardingHelper {
         return s;
     }
 
-    private static int readVarInt(ByteBuf input) {
+    private static int readVarint(ByteBuf input) {
         int out = 0;
         int bytes = 0;
         byte in;
@@ -160,7 +162,7 @@ public class VelocityHelper extends ForwardingHelper {
             out |= (in & 0x7F) << (bytes++ * 7);
 
             if (bytes > 5) {
-                throw new RuntimeException("VarInt is too big");
+                throw new RuntimeException("Varint is too big");
             }
         } while ((in & 0x80) == 0x80);
 

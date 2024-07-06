@@ -117,6 +117,12 @@ public class LoginListener extends ClassVisitor implements Function<ClassVisitor
                         prelabel = false;
                     }
                 }
+
+                @Override
+                public void visitEnd() {
+                    super.visitEnd();
+                    if (prelabel) throw new IllegalStateException("Hook failed");
+                }
             };
         } else if (file.sources.login.name.equals(name) && file.sources.login.descriptor.equals(descriptor)) {
             return new MethodVisitor(ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {

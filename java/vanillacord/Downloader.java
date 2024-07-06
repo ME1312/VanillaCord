@@ -4,7 +4,6 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import vanillacord.data.Digest;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -31,12 +30,13 @@ public final class Downloader {
 
     public JSONObject find(String version) {
         JSONObject profile;
-        if ((profile = versions.get(version)) != null) {
+        final HashMap<String, JSONObject> map;
+        if ((profile = (map = this.versions).get(version)) != null) {
             return profile;
         }
         String id;
         for (Iterator<JSONObject> it = this.data; it.hasNext();) {
-            versions.putIfAbsent(id = (profile = it.next()).getString("id"), profile);
+            map.putIfAbsent(id = (profile = it.next()).getString("id"), profile);
             if (version.equals(id)) {
                 return profile;
             }
@@ -46,21 +46,18 @@ public final class Downloader {
 
     @SuppressWarnings("AssignmentUsedAsCondition")
     public static void main(String[] args) {
-        if (args.length == 0) {
-            System.out.println("VanillaCord requires you to specify at least one minecraft version to patch");
+        System.out.println(Patcher.brand);
+
+        final int length;
+        if ((length = args.length) == 0) {
+            System.out.println("This entry point requires you to specify at least one minecraft version to patch");
             System.exit(1);
         }
-        System.out.println(Patcher.brand);
         try {
-            final boolean multiple;
-            System.out.print("Searching for the specified server version");
-            if (multiple = args.length != 1) System.out.println('s');
-            System.out.println();
-
             Downloader downloads = null;
             FileSystem system;
             Path library = (system = FileSystems.getDefault()).getPath("in");
-            for (int i = 0; i != args.length;) {
+            for (int i = 0; i != length;) {
                 String version;
                 if (!Files.exists(library.resolve((version = args[i] = args[i++].toLowerCase(Locale.ENGLISH)) + ".jar"))) {
                     if (downloads == null) downloads = new Downloader();
@@ -72,7 +69,14 @@ public final class Downloader {
                 }
             }
 
-            Path parent = system.getPath("out");
+            final boolean multiple;
+            if (multiple = length != 1) {
+                System.out.println();
+            }
+
+            Path parent;
+            Files.createDirectories(library);
+            Files.createDirectories(parent = system.getPath("out"));
             for (String version : args) {
                 Path in = library.resolve(version + ".jar");
                 Path out = parent.resolve(version + ".jar");
@@ -84,25 +88,24 @@ public final class Downloader {
                     final JSONObject location;
                     if (downloads == null) downloads = new Downloader();
                     if ((location = downloads.find(version)) == null) {
-                        throw new FileNotFoundException(in.toString());
+                        throw new IllegalStateException("Cannot find version metadata online for Minecraft " + version);
                     }
                     System.out.print("Downloading Minecraft server version ");
                     System.out.println(version);
-                    Files.createDirectories(library);
 
                     URLConnection connection;
-                    int i = 0, length;
-                    byte[] digest, data = new byte[length = (connection = new URL(location.getString("url")).openConnection()).getContentLength()];
+                    int i = 0, size;
+                    byte[] digest, data = new byte[size = (connection = new URL(location.getString("url")).openConnection()).getContentLength()];
                     try (InputStream stream = connection.getInputStream()) {
-                        for (int b; i < length && (b = stream.read(data, i, length - i)) != -1; i += b);
+                        for (int b; i < size && (b = stream.read(data, i, size - i)) != -1; i += b);
                     }
 
-                    if (i != length) {
-                        throw new IllegalStateException("Downloaded profile is not as expected: File size: " + i + " != " + length);
+                    if (i != size) {
+                        throw new IllegalStateException("Downloaded profile is not as expected: File size: " + i + " != " + size);
                     }
 
                     MessageDigest sha1;
-                    (sha1 = MessageDigest.getInstance("SHA-1")).update(data);
+                    (sha1 = MessageDigest.getInstance("SHA-1")).update(data, 0, i);
                     if (!Digest.equals(digest = sha1.digest(), location.getString("sha1"))) {
                         throw new IllegalStateException("Downloaded profile is not as expected: SHA-1 checksum: " + Digest.toHex(digest) + " != " + location.getString("sha1"));
                     }
@@ -131,7 +134,6 @@ public final class Downloader {
                     }
                 }
 
-                Files.createDirectories(parent);
                 Patcher.patch(in, out);
                 if (multiple) System.out.println();
             }

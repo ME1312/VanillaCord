@@ -6,7 +6,6 @@ import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Type;
 import vanillacord.data.ClassData;
-import vanillacord.data.FieldData;
 import vanillacord.packaging.Package;
 
 import java.io.IOException;

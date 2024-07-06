@@ -19,8 +19,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.function.Function;
 import java.util.jar.Manifest;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -42,28 +40,49 @@ public final class Patcher {
         brand = version.toString();
     }
 
+    @SuppressWarnings("AssignmentUsedAsCondition")
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.out.println("Required arguments: <input> <output>");
+        System.out.println(Patcher.brand);
+
+        final int length;
+        if ((length = args.length) < 2) {
+            System.out.println("This entry point requires you to specify at least one input/output file pair");
             System.exit(1);
         }
-        System.out.println(Patcher.brand);
+        if ((length & 1) != 0) {
+            System.out.print("Incomplete input/output file pair: ");
+            System.out.println(args[length - 1]);
+            System.exit(1);
+        }
         try {
-            FileSystem system;
-            Path in;
-            if (!Files.exists(in = (system = FileSystems.getDefault()).getPath(args[0]))) {
-                System.err.println("Couldn't find input file: " + args[0]);
-                System.exit(1);
+            FileSystem system = FileSystems.getDefault();
+            Path[] paths = new Path[length];
+            for (int i = 0; i != length; ++i) {
+                if (!Files.exists(paths[i] = system.getPath(args[i]))) {
+                    System.err.print("Couldn't find input file: ");
+                    System.err.print(args[i]);
+                    System.exit(1);
+                }
+
+                Path parent;
+                if ((parent = (paths[++i] = system.getPath(args[i])).normalize().toAbsolutePath().getParent()) == null || !Files.isDirectory(parent)) {
+                    System.err.print("Couldn't find output location: ");
+                    System.err.println(args[i]);
+                    System.exit(1);
+                }
             }
 
-            Path parent;
-            Path out;
-            if ((parent = (out = system.getPath(args[1])).toRealPath().getParent()) == null || !Files.isDirectory(parent)) {
-                System.err.println("Couldn't find output location: " + args[1]);
-                System.exit(1);
+            boolean multiple;
+            if (multiple = length != 2) {
+                System.out.println();
             }
 
-            Patcher.patch(in, out);
+            for (int i = 0; i != length; ++i) {
+                System.out.print("Opening ");
+                System.out.println(args[i]);
+                Patcher.patch(paths[i], paths[++i]);
+                if (multiple) System.out.println();
+            }
         } catch (Throwable e) {
             e.printStackTrace();
             System.exit(1);
@@ -172,20 +191,23 @@ public final class Patcher {
         }
     }
 
-    private static final Pattern manifest = Pattern.compile("^(?:Manifest-Version|Main-Class|Multi-Release|Bundler-Format):.*$");
     public static void manifest(InputStream in, OutputStream out) throws IOException {
-        StringBuilder edited = new StringBuilder();
-        BufferedReader original = new BufferedReader(new InputStreamReader(in, UTF_8));
-        for (String property; (property = original.readLine()) != null;) {
-            Matcher m = Patcher.manifest.matcher(property);
-            if (m.find()) {
-                edited.append(m.group());
-                edited.append('\n');
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(in, UTF_8));
+        for (String line; (line = reader.readLine()) != null;) {
+            int delimiter;
+            if ((delimiter = line.indexOf(':')) >= 0) {
+                switch (line.substring(0, delimiter)) {
+                    case "Manifest-Version":
+                    case "Main-Class":
+                    case "Multi-Release":
+                    case "Bundler-Format":
+                        out.write(line.getBytes(UTF_8));
+                        out.write('\n');
+                }
             }
         }
-        edited.append("Built-By: ");
-        edited.append(Patcher.brand);
-        edited.append('\n');
-        out.write(edited.toString().getBytes(UTF_8));
+        out.write(new byte[] {'B', 'u', 'i', 'l', 't', '-', 'B', 'y', ':', ' '});
+        out.write(Patcher.brand.getBytes(UTF_8));
+        out.write('\n');
     }
 }

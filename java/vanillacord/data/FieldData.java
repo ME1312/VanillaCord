@@ -1,7 +1,6 @@
 package vanillacord.data;
 
 import bridge.asm.KnownType;
-import org.objectweb.asm.Type;
 
 public final class FieldData {
     public final ClassData owner;

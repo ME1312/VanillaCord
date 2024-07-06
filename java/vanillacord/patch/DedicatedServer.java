@@ -59,7 +59,7 @@ public class DedicatedServer extends ClassVisitor implements Function<ClassVisit
                 @Override
                 public void visitFieldInsn(int opcode, String owner, String name, String descriptor) {
                     super.visitFieldInsn(opcode, owner, name, descriptor);
-                    if (state == 1 && descriptor.endsWith("/Logger;")) {
+                    if (state == 1 && (opcode == GETSTATIC || opcode == GETFIELD) && descriptor.endsWith("/Logger;")) {
                         mv.visitInsn(DUP);
                         mv.visitLdcInsn(Patcher.brand);
                         mv.visitMethodInsn(INVOKEINTERFACE,
